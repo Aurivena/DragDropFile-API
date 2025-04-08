@@ -17,6 +17,7 @@ import (
 )
 
 func init() {
+	logrus.Info("start init server")
 	if err := initialization.LoadConfiguration(); err != nil {
 		logrus.Fatal(err.Error())
 	}
