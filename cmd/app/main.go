@@ -1,0 +1,57 @@
+package main
+
+import (
+	"DragDrop-Files/initialization"
+	"DragDrop-Files/models"
+	"DragDrop-Files/pkg/action"
+	"DragDrop-Files/pkg/domain"
+	"DragDrop-Files/pkg/persistence"
+	"DragDrop-Files/pkg/route"
+	"DragDrop-Files/server"
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/sirupsen/logrus"
+)
+
+func init() {
+	if err := initialization.LoadConfiguration(); err != nil {
+		logrus.Fatal(err.Error())
+	}
+	logrus.Info("end init server")
+}
+
+func main() {
+	var serverInstance server.Server
+
+	businessDatabase := persistence.NewBusinessDatabase(initialization.ConfigService)
+
+	sources := persistence.Sources{
+		BusinessDB: businessDatabase,
+	}
+	persistences := persistence.NewPersistence(&sources)
+	domains := domain.NewDomain(*persistences, initialization.ConfigService)
+	actions := action.NewAction(domains)
+	routes := route.NewRoute(actions)
+	go run(serverInstance, routes, &initialization.ConfigService.Server)
+	stop()
+	serverInstance.Stop(context.Background(), businessDatabase)
+}
+
+func run(server server.Server, routes *route.Route, config *models.ServerConfig) {
+	ginEgine := routes.InitHTTPRoutes(config)
+
+	if err := server.Run(config.Port, ginEgine); err != nil {
+		if err.Error() != "http: Server closed" {
+			logrus.Fatalf("error occurred while running http server: %s", nil, err.Error())
+		}
+	}
+}
+
+func stop() {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGABRT)
+	<-quit
+}
