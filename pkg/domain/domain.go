@@ -1,13 +1,24 @@
 package domain
 
 import (
-	"DragDrop-Files/models"
+	"DragDrop-Files/model"
 	"DragDrop-Files/pkg/persistence"
+
+	"github.com/minio/minio-go/v7"
 )
 
-type Domain struct {
+type Minio interface {
+	Save(input *model.FileSave) (string, error)
+	Delete(id string) error
+	Get(id string) (*model.File, error)
 }
 
-func NewDomain(persistence persistence.Persistence, config *models.ConfigService) *Domain {
-	return &Domain{}
+type Domain struct {
+	Minio
+}
+
+func NewDomain(persistence *persistence.Persistence, minioClient *minio.Client) *Domain {
+	return &Domain{
+		Minio: NewMinioService(minioClient, persistence),
+	}
 }

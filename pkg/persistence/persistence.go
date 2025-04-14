@@ -1,8 +1,19 @@
 package persistence
 
-import "github.com/jmoiron/sqlx"
+import (
+	"DragDrop-Files/model"
+
+	"github.com/jmoiron/sqlx"
+)
+
+type File interface {
+	Save(id string, dateDeleted, countDownload, countDiscoveries, countDay *uint8) (bool, error)
+	Delete(id string) error
+	Get(id string) (*model.File, error)
+}
 
 type Persistence struct {
+	File
 }
 
 type Sources struct {
@@ -10,5 +21,7 @@ type Sources struct {
 }
 
 func NewPersistence(sources *Sources) *Persistence {
-	return &Persistence{}
+	return &Persistence{
+		File: NewFiePersistence(sources.BusinessDB),
+	}
 }

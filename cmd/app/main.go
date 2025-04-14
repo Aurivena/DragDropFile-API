@@ -2,7 +2,7 @@ package main
 
 import (
 	"DragDrop-Files/initialization"
-	"DragDrop-Files/models"
+	"DragDrop-Files/model"
 	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/pkg/domain"
 	"DragDrop-Files/pkg/persistence"
@@ -28,12 +28,12 @@ func main() {
 	var serverInstance server.Server
 
 	businessDatabase := persistence.NewBusinessDatabase(initialization.ConfigService)
-
+	minioClient := persistence.NewMinioStorage(initialization.ConfigService.Minio)
 	sources := persistence.Sources{
 		BusinessDB: businessDatabase,
 	}
 	persistences := persistence.NewPersistence(&sources)
-	domains := domain.NewDomain(*persistences, initialization.ConfigService)
+	domains := domain.NewDomain(persistences, minioClient)
 	actions := action.NewAction(domains)
 	routes := route.NewRoute(actions)
 	go run(serverInstance, routes, &initialization.ConfigService.Server)
@@ -41,7 +41,7 @@ func main() {
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *models.ServerConfig) {
+func run(server server.Server, routes *route.Route, config *model.ServerConfig) {
 	ginEgine := routes.InitHTTPRoutes(config)
 
 	if err := server.Run(config.Port, ginEgine); err != nil {

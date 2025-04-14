@@ -1,7 +1,7 @@
 package route
 
 import (
-	"DragDrop-Files/models"
+	"DragDrop-Files/model"
 	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/server"
 
@@ -16,7 +16,7 @@ func NewRoute(action *action.Action) *Route {
 	return &Route{action: action}
 }
 
-func (r *Route) InitHTTPRoutes(config *models.ServerConfig) *gin.Engine {
+func (r *Route) InitHTTPRoutes(config *model.ServerConfig) *gin.Engine {
 	ginSetMode(config.ServerMode)
 	router := gin.Default()
 

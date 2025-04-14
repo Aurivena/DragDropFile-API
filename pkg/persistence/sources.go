@@ -1,14 +1,16 @@
 package persistence
 
 import (
-	"DragDrop-Files/models"
+	"DragDrop-Files/model"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 )
 
-func NewBusinessDatabase(config *models.ConfigService) *sqlx.DB {
+func NewBusinessDatabase(config *model.ConfigService) *sqlx.DB {
 	fmt.Println("start database connected")
 	database, err := NewPostgresDB(&PostgresDBConfig{
 		Host:     config.BusinessDB.Host,
@@ -23,4 +25,14 @@ func NewBusinessDatabase(config *models.ConfigService) *sqlx.DB {
 	}
 	fmt.Println("database connected")
 	return database
+}
+
+func NewMinioStorage(cfg model.MinioConfig) *minio.Client {
+	client, err := minio.New(cfg.Endpoint, &minio.Options{Creds: credentials.NewStaticV4(cfg.User, cfg.Password, ""),
+		Secure: cfg.SSL})
+	if err != nil {
+		return nil
+	}
+
+	return client
 }
