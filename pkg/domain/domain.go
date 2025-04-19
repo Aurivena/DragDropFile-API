@@ -10,7 +10,7 @@ import (
 type Minio interface {
 	Save(file *model.FileSave) (string, error)
 	Delete(id string) error
-	GetByID(id string) (*minio.Object, error)
+	GetByID(id string) (*model.GetFileOutput, error)
 }
 
 type Domain struct {

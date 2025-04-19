@@ -2,13 +2,11 @@ package action
 
 import (
 	"DragDrop-Files/model"
-	"github.com/minio/minio-go/v7"
-
 	"github.com/Aurivena/answer"
 )
 
-func (a *Action) GetFile(id string) (*minio.Object, answer.ErrorCode) {
-	out, err := a.domains.Minio.GetByID(id)
+func (a *Action) GetFile(name string) (*model.GetFileOutput, answer.ErrorCode) {
+	out, err := a.domains.Minio.GetByID(name)
 	if err != nil {
 		return nil, answer.BadRequest
 	}

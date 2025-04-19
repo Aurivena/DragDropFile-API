@@ -15,17 +15,17 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 	return &FilePersistence{db: db}
 }
 
-func (p *FilePersistence) Save(id string, input *model.FileSave) (bool, error) {
+func (p *FilePersistence) Save(id string, file *model.FileSave) (bool, error) {
 	var (
 		dateCreated = time.Now().UTC()
 		del         *time.Time
 	)
-	if input.DateDeleted != nil {
-		t := dateCreated.Add(time.Duration(*input.DateDeleted))
+	if file.DateDeleted != nil {
+		t := dateCreated.Add(time.Duration(*file.DateDeleted))
 		del = &t
 	}
-	_, err := p.db.Exec(`INSERT INTO "File"  (id, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6)`,
-		id, dateCreated, del, input.CountDownload, input.CountDiscoveries, input.CountDay)
+	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6,$7)`,
+		id, file.Name, dateCreated, del, file.CountDownload, file.CountDiscoveries, file.CountDay)
 	if err != nil {
 		return false, nil
 	}
@@ -42,12 +42,12 @@ func (p *FilePersistence) Delete(id string) error {
 }
 
 func (p *FilePersistence) Get(id string) (*model.File, error) {
-	var out *model.File
+	var out model.File
 
 	err := p.db.Get(&out, `SELECT * FROM "File" WHERE id = $1`, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return out, nil
+	return &out, nil
 }
