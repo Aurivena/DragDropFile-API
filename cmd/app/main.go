@@ -33,7 +33,7 @@ func main() {
 		BusinessDB: businessDatabase,
 	}
 	persistences := persistence.NewPersistence(&sources)
-	domains := domain.NewDomain(persistences, minioClient)
+	domains := domain.NewDomain(persistences, initialization.ConfigService, minioClient)
 	actions := action.NewAction(domains)
 	routes := route.NewRoute(actions)
 	go run(serverInstance, routes, &initialization.ConfigService.Server)

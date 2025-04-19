@@ -2,12 +2,13 @@ package action
 
 import (
 	"DragDrop-Files/model"
+	"github.com/minio/minio-go/v7"
 
 	"github.com/Aurivena/answer"
 )
 
-func (a *Action) GetFile(id string) (*model.File, answer.ErrorCode) {
-	out, err := a.domains.Minio.Get(id)
+func (a *Action) GetFile(id string) (*minio.Object, answer.ErrorCode) {
+	out, err := a.domains.Minio.GetByID(id)
 	if err != nil {
 		return nil, answer.BadRequest
 	}
@@ -15,8 +16,8 @@ func (a *Action) GetFile(id string) (*model.File, answer.ErrorCode) {
 	return out, answer.OK
 }
 
-func (a *Action) SaveFile(input *model.FileSave) (string, answer.ErrorCode) {
-	id, err := a.domains.Minio.Save(input)
+func (a *Action) SaveFile(file *model.FileSave) (string, answer.ErrorCode) {
+	id, err := a.domains.Minio.Save(file)
 	if err != nil {
 		return "", answer.BadRequest
 	}

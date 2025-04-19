@@ -5,19 +5,19 @@ import (
 )
 
 type File struct {
-	Id               string    `json:id`
-	DateCreated      time.Time `json:date_created`
-	DateDeleted      time.Time `json:date_deleted`
-	CountDownload    uint8     `json:count_download`
-	CountDiscoveries uint8     `json:count_discoveries`
-	CountDay         uint8     `json:count_day`
+	Id          string    `json:"id"`
+	DateCreated time.Time `json:"date_created"`
+	Data
 }
 
 type FileSave struct {
-	File             string    `json:file`
-	DateCreated      time.Time `json:date_created`
-	DateDeleted      *uint8    `json:date_deleted`
-	CountDownload    *uint8    `json:count_download`
-	CountDiscoveries *uint8    `json:count_discoveries`
-	CountDay         *uint8    `json:count_day`
+	FileBase64 string `json:"file"`
+	Data
+}
+
+type Data struct {
+	DateDeleted      *uint8 `json:"date_deleted"`
+	CountDownload    *uint8 `json:"count_download"`
+	CountDiscoveries *uint8 `json:"count_discoveries"`
+	CountDay         *uint8 `json:"count_day"`
 }

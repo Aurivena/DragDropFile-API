@@ -8,17 +8,17 @@ import (
 )
 
 type Minio interface {
-	Save(input *model.FileSave) (string, error)
+	Save(file *model.FileSave) (string, error)
 	Delete(id string) error
-	Get(id string) (*model.File, error)
+	GetByID(id string) (*minio.Object, error)
 }
 
 type Domain struct {
 	Minio
 }
 
-func NewDomain(persistence *persistence.Persistence, minioClient *minio.Client) *Domain {
+func NewDomain(persistence *persistence.Persistence, cfg *model.ConfigService, minioClient *minio.Client) *Domain {
 	return &Domain{
-		Minio: NewMinioService(minioClient, persistence),
+		Minio: NewMinioService(minioClient, persistence, cfg),
 	}
 }

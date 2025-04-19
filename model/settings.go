@@ -22,10 +22,11 @@ type BusinessDBConfig struct {
 }
 
 type MinioConfig struct {
-	Endpoint string `json:"endpoint" binding:"required"`
-	User     string `json:"minio-root-user" binding:"required"`
-	Password string `json:"minio-root-password" binding:"required"`
-	SSL      bool   `json:"minio_use_ssl"  binding:"required"`
+	Endpoint        string `json:"endpoint" binding:"required"`
+	User            string `json:"minio_root_user" binding:"required"`
+	Password        string `json:"minio_root_password" binding:"required"`
+	SSL             bool   `json:"minio_use_ssl"  binding:"required"`
+	MinioBucketName string `json:"minio_bucket_name" binding:"required"`
 }
 
 type Environment struct {

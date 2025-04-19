@@ -7,7 +7,7 @@ import (
 )
 
 type File interface {
-	Save(id string, dateDeleted, countDownload, countDiscoveries, countDay *uint8) (bool, error)
+	Save(id string, input *model.FileSave) (bool, error)
 	Delete(id string) error
 	Get(id string) (*model.File, error)
 }

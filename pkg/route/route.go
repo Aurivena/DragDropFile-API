@@ -22,7 +22,8 @@ func (r *Route) InitHTTPRoutes(config *model.ServerConfig) *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		api.GET("")
+		api.POST("/save", r.SaveFile)
+		api.GET("/file/:id", r.Get)
 	}
 
 	return router
