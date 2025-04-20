@@ -15,17 +15,17 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 	return &FilePersistence{db: db}
 }
 
-func (p *FilePersistence) Save(id string, file *model.FileSave) (bool, error) {
+func (p *FilePersistence) Save(id string, input *model.FileSave) (bool, error) {
 	var (
 		dateCreated = time.Now().UTC()
 		del         *time.Time
 	)
-	if file.DateDeleted != nil {
-		t := dateCreated.Add(time.Duration(*file.DateDeleted))
+	if input.DateDeleted != nil {
+		t := dateCreated.Add(time.Duration(*input.DateDeleted))
 		del = &t
 	}
-	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6,$7)`,
-		id, file.Name, dateCreated, del, file.CountDownload, file.CountDiscoveries, file.CountDay)
+	_, err := p.db.Exec(`INSERT INTO "File"  (id, name,password, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
+		id, input.Name, input.Password, dateCreated, del, input.CountDownload, input.CountDiscoveries, input.CountDay)
 	if err != nil {
 		return false, nil
 	}

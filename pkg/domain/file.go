@@ -28,7 +28,7 @@ func NewMinioService(minioClient *minio.Client, pers *persistence.Persistence, c
 	return &MinioService{minioClient: minioClient, pers: pers, cfg: cfg}
 }
 
-func (s *MinioService) Save(file *model.FileSave) (string, error) {
+func (s *MinioService) Save(input *model.FileSave) (string, error) {
 	id, err := generateID()
 	if err != nil {
 		return "", err
@@ -37,15 +37,15 @@ func (s *MinioService) Save(file *model.FileSave) (string, error) {
 	var ext string
 	var data []byte
 
-	if len(file.FileBase64) > 1 {
-		data, err = zipFiles(file.FileBase64, id)
+	if len(input.FileBase64) > 1 {
+		data, err = zipFiles(input.FileBase64, id)
 		if err != nil {
 			return "", err
 		}
 
 		name = fmt.Sprintf("%s.zip", id)
 	} else {
-		data, ext, err = decodeFile(file.FileBase64[0])
+		data, ext, err = decodeFile(input.FileBase64[0])
 		if err != nil {
 			return "", err
 		}
@@ -60,8 +60,8 @@ func (s *MinioService) Save(file *model.FileSave) (string, error) {
 		contentType = "application/octet-stream"
 	}
 
-	file.Name = name
-	answer, err := s.pers.File.Save(id, file)
+	input.Name = name
+	answer, err := s.pers.File.Save(id, input)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func (s *MinioService) Save(file *model.FileSave) (string, error) {
 
 	reader := bytes.NewReader(data)
 
-	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, file.Name, reader, fileSize, minio.PutObjectOptions{
+	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, input.Name, reader, fileSize, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
