@@ -8,7 +8,7 @@ import (
 )
 
 type Minio interface {
-	Save(input *model.FileSave) (string, error)
+	Save(input *model.FileSaveInput) (string, error)
 	Delete(id string) error
 	GetByID(id string) (*model.GetFileOutput, error)
 }

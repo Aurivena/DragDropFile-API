@@ -8,12 +8,18 @@ import (
 type File struct {
 	Id          string    `json:"id"`
 	DateCreated time.Time `json:"date_created" db:"date_created"`
+	Name        string    `json:"name" db:"name"`
+	Data
+}
+
+type FileSaveInput struct {
+	FileBase64 []string `json:"file"`
 	Data
 }
 
 type FileSave struct {
-	FileBase64 []string `json:"file"`
-	Data
+	File FileSaveInput
+	Name string `json:"name" db:"name"`
 }
 
 type GetFileOutput struct {
@@ -22,7 +28,6 @@ type GetFileOutput struct {
 }
 
 type Data struct {
-	Name             string  `json:"name" db:"name"`
 	Password         *string `json:"password" db:"password"`
 	DateDeleted      *uint8  `json:"date_deleted" db:"date_deleted"`
 	CountDownload    *uint8  `json:"count_download" db:"count_download"`

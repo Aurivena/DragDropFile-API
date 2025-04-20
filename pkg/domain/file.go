@@ -28,7 +28,7 @@ func NewMinioService(minioClient *minio.Client, pers *persistence.Persistence, c
 	return &MinioService{minioClient: minioClient, pers: pers, cfg: cfg}
 }
 
-func (s *MinioService) Save(input *model.FileSave) (string, error) {
+func (s *MinioService) Save(input *model.FileSaveInput) (string, error) {
 	id, err := generateID()
 	if err != nil {
 		return "", err
@@ -60,8 +60,11 @@ func (s *MinioService) Save(input *model.FileSave) (string, error) {
 		contentType = "application/octet-stream"
 	}
 
-	input.Name = name
-	answer, err := s.pers.File.Save(id, input)
+	var file = model.FileSave{
+		File: *input,
+		Name: name,
+	}
+	answer, err := s.pers.File.Save(id, &file)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +75,7 @@ func (s *MinioService) Save(input *model.FileSave) (string, error) {
 
 	reader := bytes.NewReader(data)
 
-	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, input.Name, reader, fileSize, minio.PutObjectOptions{
+	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, name, reader, fileSize, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {

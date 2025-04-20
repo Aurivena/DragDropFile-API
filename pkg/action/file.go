@@ -14,7 +14,7 @@ func (a *Action) GetFile(name string) (*model.GetFileOutput, answer.ErrorCode) {
 	return out, answer.OK
 }
 
-func (a *Action) SaveFile(input *model.FileSave) (string, answer.ErrorCode) {
+func (a *Action) SaveFile(input *model.FileSaveInput) (string, answer.ErrorCode) {
 	id, err := a.domains.Minio.Save(input)
 	if err != nil {
 		return "", answer.BadRequest

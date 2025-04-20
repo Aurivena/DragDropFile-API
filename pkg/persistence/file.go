@@ -20,12 +20,12 @@ func (p *FilePersistence) Save(id string, input *model.FileSave) (bool, error) {
 		dateCreated = time.Now().UTC()
 		del         *time.Time
 	)
-	if input.DateDeleted != nil {
-		t := dateCreated.Add(time.Duration(*input.DateDeleted))
+	if input.File.DateDeleted != nil {
+		t := dateCreated.Add(time.Duration(*input.File.DateDeleted))
 		del = &t
 	}
 	_, err := p.db.Exec(`INSERT INTO "File"  (id, name,password, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
-		id, input.Name, input.Password, dateCreated, del, input.CountDownload, input.CountDiscoveries, input.CountDay)
+		id, input.Name, input.File.Password, dateCreated, del, input.File.CountDownload, input.File.CountDiscoveries, input.File.CountDay)
 	if err != nil {
 		return false, nil
 	}

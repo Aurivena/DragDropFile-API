@@ -24,6 +24,12 @@ func init() {
 	logrus.Info("end init server")
 }
 
+// @title           DragDropFiles
+// @version         1.0.0
+// @description     Сервис по сохранению файлов
+
+// @host      		drag_drop_files.com
+// @BasePath  		/api/
 func main() {
 	var serverInstance server.Server
 
