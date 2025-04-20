@@ -28,7 +28,7 @@ func init() {
 // @version         1.0.0
 // @description     Сервис по сохранению файлов
 
-// @host      		drag_drop_files.com
+// @host      		localhost:1941
 // @BasePath  		/api/
 func main() {
 	var serverInstance server.Server
