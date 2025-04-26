@@ -6,20 +6,25 @@ import (
 )
 
 type File struct {
-	Id          string    `json:"id"`
-	DateCreated time.Time `json:"date_created" db:"date_created"`
-	Name        string    `json:"name" db:"name"`
-	Data
+	Id   string `json:"id"`
+	Name string `json:"name" db:"name"`
 }
 
 type FileSaveInput struct {
-	FileBase64 []string `json:"file"`
-	Data
+	FileBase64 []string `json:"files"`
 }
 
 type FileSave struct {
-	File FileSaveInput
-	Name string `json:"name" db:"name"`
+	Id         string
+	Name       string
+	SessionID  string
+	DataBase64 string
+}
+
+type FilSaveOutput struct {
+	Size  int64  `json:"size"`
+	Count int    `json:"count"`
+	ID    string `json:"id"`
 }
 
 type GetFileOutput struct {
@@ -28,9 +33,22 @@ type GetFileOutput struct {
 }
 
 type Data struct {
-	Password         *string `json:"password" db:"password"`
-	DateDeleted      *uint8  `json:"date_deleted" db:"date_deleted"`
-	CountDownload    *uint8  `json:"count_download" db:"count_download"`
-	CountDiscoveries *uint8  `json:"count_discoveries" db:"count_discoveries"`
-	CountDay         *uint8  `json:"count_day" db:"count_day"`
+	Password      *string    `json:"password" db:"password"`
+	DateDeleted   *time.Time `json:"date_deleted" db:"date_deleted"`
+	CountDownload *int       `json:"count_download" db:"count_download"`
+}
+
+type FileGetInput struct {
+	Password *string `json:"password"`
+}
+
+type FileGet struct {
+	SessionID string
+	Password  *string
+}
+
+type FileUpdate struct {
+	CountDayToDeleted *int    `json:"count_day_to_deleted"`
+	Password          *string `json:"password"`
+	CountDownload     *int    `json:"count_download"`
 }

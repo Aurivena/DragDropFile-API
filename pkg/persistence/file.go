@@ -2,9 +2,14 @@ package persistence
 
 import (
 	"DragDrop-Files/model"
-	"time"
-
+	"database/sql"
+	"errors"
 	"github.com/jmoiron/sqlx"
+	"time"
+)
+
+const (
+	errorNoSqlResult = "sql: no rows in result set"
 )
 
 type FilePersistence struct {
@@ -15,22 +20,25 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 	return &FilePersistence{db: db}
 }
 
-func (p *FilePersistence) Save(id string, input *model.FileSave) (bool, error) {
-	var (
-		dateCreated = time.Now().UTC()
-		del         *time.Time
-	)
-	if input.File.DateDeleted != nil {
-		t := dateCreated.Add(time.Duration(*input.File.DateDeleted))
-		del = &t
-	}
-	_, err := p.db.Exec(`INSERT INTO "File"  (id, name,password, date_created, date_deleted, count_download, count_discoveries, count_day) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
-		id, input.Name, input.File.Password, dateCreated, del, input.File.CountDownload, input.File.CountDiscoveries, input.File.CountDay)
+func (p *FilePersistence) Create(input model.FileSave) error {
+	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, session, data_base64, password, date_deleted, count_download) VALUES($1,$2,$3,$4,$5,$6,$7)`,
+		input.Id, input.Name, input.SessionID, input.DataBase64, nil, nil, nil)
 	if err != nil {
-		return false, nil
+		return err
 	}
 
-	return true, nil
+	return nil
+}
+
+func (p *FilePersistence) GetDataBase64ByID(id string) (string, error) {
+	var dataBase64 string
+
+	err := p.db.Get(&dataBase64, `SELECT data_base64 FROM "File" WHERE id = $1`, id)
+	if err != nil {
+		return "", err
+	}
+
+	return dataBase64, nil
 }
 
 func (p *FilePersistence) Delete(id string) error {
@@ -41,13 +49,92 @@ func (p *FilePersistence) Delete(id string) error {
 	return nil
 }
 
-func (p *FilePersistence) Get(id string) (*model.File, error) {
-	var out model.File
+func (p *FilePersistence) GetNameByID(id string) (string, error) {
+	var out string
 
-	err := p.db.Get(&out, `SELECT * FROM "File" WHERE id = $1`, id)
+	err := p.db.Get(&out, `SELECT name FROM "File" WHERE id = $1`, id)
 	if err != nil {
+		return "", err
+	}
+
+	return out, nil
+}
+
+func (p *FilePersistence) GetIdFileBySession(sessionID string) ([]string, error) {
+	var out []string
+
+	err := p.db.Select(&out, `SELECT id FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
+	if err != nil && err.Error() != errorNoSqlResult {
 		return nil, err
 	}
 
+	return out, nil
+}
+
+func (p *FilePersistence) GetZipMetaBySession(sessionID string) (*model.File, error) {
+	var out model.File
+	err := p.db.Get(&out, `SELECT id, name FROM "File" WHERE session = $1 AND name LIKE '%.zip'`, sessionID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
 	return &out, nil
+}
+
+func (p *FilePersistence) DeleteZipMetaBySession(sessionID string) error {
+	_, err := p.db.Exec(`DELETE FROM "File" WHERE session = $1 AND name LIKE '%.zip'`, sessionID)
+	return err
+}
+
+func (p *FilePersistence) DeleteFilesBySessionID(sessionID string) error {
+	_, err := p.db.Exec(`DELETE FROM "File" WHERE session = $1`, sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *FilePersistence) Get(sessionID string) (*model.Data, error) {
+	var out model.Data
+
+	err := p.db.Get(&out, `SELECT password,date_deleted,count_download FROM "File" WHERE session = $1`, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (p *FilePersistence) UpdateCountDownload(count int, sessionID string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET count_download = $1 WHERE session = $2`, count, sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (p *FilePersistence) UpdateDateDeleted(dateDeleted time.Time, sessionID string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET date_deleted = $1 WHERE session = $2`, dateDeleted, sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (p *FilePersistence) UpdatePassword(password string, sessionID string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET password = $1 WHERE session = $2`, password, sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *FilePersistence) GetSessionByID(id string) (string, error) {
+	var session string
+
+	err := p.db.Get(&session, `SELECT session FROM "File" WHERE id = $1`, id)
+	if err != nil {
+		return "", err
+	}
+
+	return session, nil
 }

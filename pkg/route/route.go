@@ -24,6 +24,9 @@ func (r *Route) InitHTTPRoutes(config *model.ServerConfig) *gin.Engine {
 	{
 		api.POST("/file/save", r.SaveFile)
 		api.GET("/file/:id", r.Get)
+		api.PUT("file/update/deleted", r.UpdateCountDayToDeleted)
+		api.PUT("file/update/password", r.UpdatePassword)
+		api.PUT("file/update/count-download", r.UpdateCountDownload)
 	}
 
 	return router

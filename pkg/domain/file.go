@@ -5,135 +5,165 @@ import (
 	"DragDrop-Files/pkg/persistence"
 	"archive/zip"
 	"bytes"
-	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/minio/minio-go/v7"
 	"io"
 	"log"
 	"math/big"
 	"mime"
-	"net/http"
 	"strings"
+	"time"
 )
 
-type MinioService struct {
-	minioClient *minio.Client
-	pers        *persistence.Persistence
-	cfg         *model.ConfigService
+type FileService struct {
+	pers *persistence.Persistence
 }
 
-func NewMinioService(minioClient *minio.Client, pers *persistence.Persistence, cfg *model.ConfigService) *MinioService {
-	return &MinioService{minioClient: minioClient, pers: pers, cfg: cfg}
+func NewFileService(pers *persistence.Persistence) *FileService {
+	return &FileService{pers: pers}
 }
 
-func (s *MinioService) Save(input *model.FileSaveInput) (string, error) {
-	id, err := generateID()
-	if err != nil {
-		return "", err
-	}
-	var name string
-	var ext string
-	var data []byte
-
-	if len(input.FileBase64) > 1 {
-		data, err = zipFiles(input.FileBase64, id)
-		if err != nil {
-			return "", err
-		}
-
-		name = fmt.Sprintf("%s.zip", id)
-	} else {
-		data, ext, err = decodeFile(input.FileBase64[0])
-		if err != nil {
-			return "", err
-		}
-		name = fmt.Sprintf("%s%s", id, ext)
-	}
-
-	fileSize := int64(len(data))
-	var contentType string
-	if fileSize > 0 {
-		contentType = http.DetectContentType(data)
-	} else {
-		contentType = "application/octet-stream"
-	}
-
-	var file = model.FileSave{
-		File: *input,
-		Name: name,
-	}
-	answer, err := s.pers.File.Save(id, &file)
-	if err != nil {
-		return "", err
-	}
-
-	if !answer {
-		return "", err
-	}
-
-	reader := bytes.NewReader(data)
-
-	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, name, reader, fileSize, minio.PutObjectOptions{
-		ContentType: contentType,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	log.Printf("Файл успешно загружен в MinIO: ID=%s, ETag=%s, Size=%d\n", id, uploadInfo.ETag, uploadInfo.Size)
-
-	return id, nil
+func (d *FileService) Create(input model.FileSave) error {
+	return d.pers.Create(input)
 }
 
-func (s *MinioService) Delete(id string) error {
-	file, err := s.pers.Get(id)
+func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
+	return d.pers.GetIdFileBySession(sessionID)
+}
+
+func (d *FileService) GetNameByID(id string) (string, error) {
+	return d.pers.GetNameByID(id)
+}
+
+func (d *FileService) GetZipMetaBySession(sessionID string) (*model.File, error) {
+	return d.pers.GetZipMetaBySession(sessionID)
+}
+
+func (d *FileService) Delete(id string) error {
+	return d.pers.Delete(id)
+}
+
+func (d *FileService) GetDataBase64ByID(id string) (string, error) {
+	return d.pers.GetDataBase64ByID(id)
+}
+
+func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
+	return d.pers.DeleteFilesBySessionID(sessionID)
+}
+
+func (d *FileService) GetSessionByID(id string) (string, error) {
+	return d.pers.GetSessionByID(id)
+}
+
+func (d *FileService) UpdateCountDownload(count int, sessionID string) error {
+	return d.pers.File.UpdateCountDownload(count, sessionID)
+}
+func (d *FileService) UpdateDateDeleted(countDayToDeleted int, sessionID string) error {
+	dateDeleted := time.Now().UTC().Add(time.Hour * 24 * time.Duration(countDayToDeleted))
+	return d.pers.File.UpdateDateDeleted(dateDeleted, sessionID)
+}
+func (d *FileService) UpdatePassword(password, sessionID string) error {
+	return d.pers.File.UpdatePassword(password, sessionID)
+}
+
+func (d *FileService) ValidatePassword(input *model.FileGet) error {
+	out, err := d.pers.Get(input.SessionID)
 	if err != nil {
 		return err
 	}
-	opts := minio.RemoveObjectOptions{}
-	err = s.minioClient.RemoveObject(context.Background(), s.cfg.Minio.MinioBucketName, file.Name, opts)
-	if err != nil {
-		errResponse := minio.ToErrorResponse(err)
-		if errResponse.Code == "NoSuchKey" {
-			log.Printf("Объект '%s' уже удален или не существовал в MinIO (Bucket: '%s'). Продолжаем удаление метаданных.", id, s.cfg.Minio.MinioBucketName)
-		} else {
-			log.Printf("Ошибка удаления объекта из MinIO: Bucket='%s', Object='%s', Err: %v", s.cfg.Minio.MinioBucketName, id, err)
-			return fmt.Errorf("ошибка удаления файла из хранилища: %w", err)
-		}
-	} else {
-		log.Printf("Объект '%s' успешно удален из MinIO (Bucket: '%s').", id, s.cfg.Minio.MinioBucketName)
+
+	if out.Password != nil && *out.Password != *input.Password {
+		return fmt.Errorf("пароли не совпадают")
 	}
-	return s.pers.Delete(id)
+
+	return nil
 }
 
-func (s *MinioService) GetByID(id string) (*model.GetFileOutput, error) {
-	var out model.GetFileOutput
-	file, err := s.pers.Get(id)
+func (d *FileService) ValidateDateDeleted(sessionID string) error {
+	out, err := d.pers.Get(sessionID)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	optsGet := minio.GetObjectOptions{}
-	objectReader, err := s.minioClient.GetObject(context.Background(), s.cfg.Minio.MinioBucketName, file.Name, optsGet)
-	if err != nil {
-		errResponse := minio.ToErrorResponse(err)
-		if errResponse.Code == "NoSuchKey" {
-			log.Printf("Объект '%s' не найден в MinIO (Bucket: '%s').", id, s.cfg.Minio.MinioBucketName)
-			return nil, fmt.Errorf("файл с ID '%s' не найден в хранилище: %w", id, err)
+
+	if out.DateDeleted != nil {
+		now := time.Now().UTC()
+		if !now.Before(out.DateDeleted.UTC()) {
+			if err := d.pers.File.DeleteFilesBySessionID(sessionID); err != nil {
+				return err
+			}
+			return fmt.Errorf("срок хранения этого файла истек. свяжитесь с владельцем")
 		}
-
-		log.Printf("Ошибка получения потока объекта из MinIO: Bucket='%s', Object='%s', Err: %v", s.cfg.Minio.MinioBucketName, id, err)
-		return nil, fmt.Errorf("ошибка получения содержимого файла: %w", err)
 	}
 
-	log.Printf("Поток для объекта '%s' из бакета '%s' успешно получен.", id, s.cfg.Minio.MinioBucketName)
-	out.File = objectReader
-	out.Name = file.Name
-	return &out, nil
+	return nil
+}
+func (d *FileService) ValidateCountDownload(sessionID string) error {
+	out, err := d.pers.Get(sessionID)
+	if err != nil {
+		return err
+	}
+
+	if out.CountDownload != nil && *out.CountDownload <= 0 {
+		err := d.pers.File.DeleteFilesBySessionID(sessionID)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("количество загрузрк для этого файла исерпано. свяжитесь с владельцем")
+	}
+
+	if out.CountDownload != nil && *out.CountDownload >= 0 {
+		c := *out.CountDownload - 1
+		err := d.pers.File.UpdateCountDownload(c, sessionID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func generateID() (string, error) {
+func (d *FileService) ZipFiles(filesBase64 []string, id string) ([]byte, error) {
+	var buff bytes.Buffer
+	zipW := zip.NewWriter(&buff)
+
+	for i, base64Content := range filesBase64 {
+		fileBytes, filename, ext, err := DecodeFile(base64Content)
+		if err != nil {
+			_ = zipW.Close()
+			return nil, fmt.Errorf("ошибка при обработке файла %s: %w", id, err)
+		}
+
+		if len(fileBytes) == 0 {
+			log.Printf("[zipFiles] Пустой файл %d. Пропускаем.", i)
+			continue
+		}
+		headerName := fmt.Sprintf("%s-%d%s", filename, i, ext)
+		header := &zip.FileHeader{
+			Name:   headerName,
+			Method: zip.Deflate,
+		}
+
+		fileInZip, err := zipW.CreateHeader(header)
+		if err != nil {
+			_ = zipW.Close()
+			return nil, fmt.Errorf("ошибка при создании файла %d в zip-архиве: %w", header.Name, err)
+		}
+
+		_, err = io.Copy(fileInZip, bytes.NewReader(fileBytes))
+		if err != nil {
+			_ = zipW.Close()
+			return nil, fmt.Errorf("ошибка при записи содержимого файла %d в zip-архив: %w", header.Name, err)
+		}
+	}
+
+	err := zipW.Close()
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при закрытии zip-архива: %w", err)
+	}
+
+	return buff.Bytes(), nil
+}
+func GenerateID() (string, error) {
 	lenCode := 12
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	code := make([]byte, lenCode)
@@ -149,10 +179,25 @@ func generateID() (string, error) {
 
 	return string(code), nil
 }
-
-func decodeFile(fileBase64 string) ([]byte, string, error) {
-	mimeType := ""
+func GetMimeType(fileBase64 string) string {
 	base64Data := fileBase64
+	var mimeType string
+
+	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
+		parts := strings.SplitN(fileBase64, ";base64,", 2)
+		if len(parts) == 2 {
+			mimePart := parts[0]
+			if strings.HasPrefix(mimePart, "data:") {
+				mimeType = mimePart[len("data:"):]
+			}
+		}
+	}
+
+	return mimeType
+}
+func DecodeFile(fileBase64 string) ([]byte, string, string, error) {
+	base64Data := fileBase64
+	var mimeType string
 
 	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
 		parts := strings.SplitN(fileBase64, ";base64,", 2)
@@ -165,60 +210,17 @@ func decodeFile(fileBase64 string) ([]byte, string, error) {
 		}
 	}
 
-	decodedData, err := base64.StdEncoding.DecodeString(base64Data)
+	data, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		log.Printf("Ошибка декодирования Base64 для строки '%s': %v", fileBase64[:min(len(fileBase64), 50)], err) // Добавляем контекст в лог
-		return nil, "", fmt.Errorf("некорректные Base64 данные: %w", err)
+		log.Printf("Ошибка декодирования Base64 для строки '%s': %v", fileBase64[:min(len(fileBase64), 50)], err)
+		return nil, "", "", fmt.Errorf("некорректные Base64 данные: %w", err)
 	}
 
-	exts, err := mime.ExtensionsByType(mimeType)
-	if err != nil || len(exts) == 0 {
+	ext, err := mime.ExtensionsByType(mimeType)
+	if err != nil || len(ext) == 0 {
 		log.Printf("Не удалось определить расширение по MIME-типу '%s': %v", mimeType, err)
-		return decodedData, "", nil
+		return nil, "", "", err
 	}
-
-	return decodedData, exts[0], nil
-}
-
-func zipFiles(filesBase64 []string, filename string) ([]byte, error) {
-	var buff bytes.Buffer
-	zipW := zip.NewWriter(&buff)
-
-	for i, base64Content := range filesBase64 {
-		fileBytes, ext, err := decodeFile(base64Content)
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при обработке файла %d: %w", i, err)
-		}
-
-		if len(fileBytes) == 0 {
-			log.Printf("[zipFiles] Пустой файл #%d. Пропускаем.", i+1)
-			continue
-		}
-		headerName := fmt.Sprintf("%s-%d%s", filename, i+1, ext)
-		header := &zip.FileHeader{
-			Name:   headerName,
-			Method: zip.Deflate,
-		}
-
-		fileInZip, err := zipW.CreateHeader(header)
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при создании файла %s в zip-архиве: %w", header.Name, err)
-		}
-
-		_, err = io.Copy(fileInZip, bytes.NewReader(fileBytes))
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при записи содержимого файла %s в zip-архив: %w", header.Name, err)
-		}
-
-	}
-
-	err := zipW.Close()
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при закрытии zip-архива: %w", err)
-	}
-
-	return buff.Bytes(), nil
+	filename := string(data)
+	return data, filename, ext[0], nil
 }
