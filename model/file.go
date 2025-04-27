@@ -52,3 +52,15 @@ type FileUpdate struct {
 	Password          *string `json:"password"`
 	CountDownload     *int    `json:"count_download"`
 }
+
+type DayDeletedUpdateInput struct {
+	CountDayToDeleted int `json:"count_day_to_deleted"`
+}
+
+type PasswordUpdateInput struct {
+	Password string `json:"password"`
+}
+
+type CountDownloadUpdateInput struct {
+	CountDownload int `json:"count_download"`
+}

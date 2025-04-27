@@ -86,14 +86,14 @@ func (r *Route) Get(c *gin.Context) {
 // @Tags         File
 // @Accept       json
 // @Produce      json
-// @Param        input body model.FileUpdate true "Новые данные для обновления"
+// @Param        input body model.DayDeletedUpdateInput true "Данные для ввода"
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/deleted [put]
 func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
-	var input *model.FileUpdate
+	var input *model.DayDeletedUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -101,7 +101,7 @@ func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdateDateDeleted(*input.CountDayToDeleted, sessionID)
+	processStatus := r.action.UpdateDateDeleted(input.CountDayToDeleted, sessionID)
 	if processStatus != answer.NoContent {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -115,14 +115,14 @@ func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
 // @Tags         File
 // @Accept       json
 // @Produce      json
-// @Param        input body model.FileUpdate true "Новые данные для обновления"
+// @Param        input body model.PasswordUpdateInput true "Данные для ввода"
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/password [put]
 func (r *Route) UpdatePassword(c *gin.Context) {
-	var input *model.FileUpdate
+	var input *model.PasswordUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -130,7 +130,7 @@ func (r *Route) UpdatePassword(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdatePassword(*input.Password, sessionID)
+	processStatus := r.action.UpdatePassword(input.Password, sessionID)
 	if processStatus != answer.NoContent {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -144,14 +144,14 @@ func (r *Route) UpdatePassword(c *gin.Context) {
 // @Tags         File
 // @Accept       json
 // @Produce      json
-// @Param        input body model.FileUpdate true "Новые данные для обновления"
+// @Param        input body model.CountDownloadUpdateInput true "Данные для ввода"
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/count-download [put]
 func (r *Route) UpdateCountDownload(c *gin.Context) {
-	var input *model.FileUpdate
+	var input *model.CountDownloadUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -159,7 +159,7 @@ func (r *Route) UpdateCountDownload(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdateCountDownload(*input.CountDownload, sessionID)
+	processStatus := r.action.UpdateCountDownload(input.CountDownload, sessionID)
 	if processStatus != answer.NoContent {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
