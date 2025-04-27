@@ -4,6 +4,9 @@ import (
 	"DragDrop-Files/model"
 	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/server"
+	"github.com/gin-contrib/cors"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +22,15 @@ func NewRoute(action *action.Action) *Route {
 func (r *Route) InitHTTPRoutes(config *model.ServerConfig) *gin.Engine {
 	ginSetMode(config.ServerMode)
 	router := gin.Default()
+	allowOrigins := strings.Split(config.Domain, ",")
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT"},
+		AllowHeaders:     []string{"X-Session-ID", "Content-Type", "Authorization"},
+		AllowCredentials: false,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	api := router.Group("/api")
 	{
