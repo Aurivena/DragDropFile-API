@@ -16,10 +16,10 @@ type FileOutput struct {
 }
 
 type FileSave struct {
-	Id         string
-	Name       string
-	SessionID  string
-	DataBase64 string
+	Id        string
+	Name      string
+	SessionID string
+	MimeType  string
 }
 
 type FilSaveOutput struct {

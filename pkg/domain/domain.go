@@ -8,8 +8,8 @@ import (
 
 type Minio interface {
 	Delete(filename string) error
-	GetByFilename(filename string) (*model.GetFileOutput, error)
-	DownloadMinio(data []byte, name string) (*minio.UploadInfo, error)
+	GetByFilename(path string) (*model.GetFileOutput, error)
+	DownloadMinio(data []byte, sessionID, name string) (*minio.UploadInfo, error)
 }
 
 type File interface {

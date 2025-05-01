@@ -21,8 +21,8 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 }
 
 func (p *FilePersistence) Create(input model.FileSave) error {
-	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, session, data_base64, password, date_deleted, count_download) VALUES($1,$2,$3,$4,$5,$6,$7)`,
-		input.Id, input.Name, input.SessionID, input.DataBase64, nil, nil, nil)
+	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, session, mime_type, password, date_deleted, count_download) VALUES($1,$2,$3,$4,$5,$6,$7)`,
+		input.Id, input.Name, input.SessionID, input.MimeType, nil, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (p *FilePersistence) Create(input model.FileSave) error {
 func (p *FilePersistence) GetMimeTypeByID(id string) (string, error) {
 	var dataBase64 string
 
-	err := p.db.Get(&dataBase64, `SELECT data_base64 FROM "File" WHERE id = $1`, id)
+	err := p.db.Get(&dataBase64, `SELECT mime_type FROM "File" WHERE id = $1`, id)
 	if err != nil {
 		return "", err
 	}

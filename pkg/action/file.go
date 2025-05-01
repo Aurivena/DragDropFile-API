@@ -71,7 +71,8 @@ func (a *Action) GetFile(id string, input *model.FileGetInput) (*model.GetFileOu
 		return nil, answer.InternalServerError
 	}
 
-	out, err := a.domains.Minio.GetByFilename(filename)
+	path := fmt.Sprintf("%s/%s", sessionID, filename)
+	out, err := a.domains.Minio.GetByFilename(path)
 	if err != nil {
 		logrus.Error(err)
 		return nil, answer.InternalServerError
@@ -123,17 +124,17 @@ func (a *Action) save(id, sessionID, filename string, files []model.File) (*mode
 		if err != nil {
 			return nil, err
 		}
-		fileID := fmt.Sprintf("%s%d", id, i)
-		_, err = a.domains.Minio.DownloadMinio(d, val.Filename)
+		fileID := fmt.Sprintf("%s%d", id, i+1)
+		_, err = a.domains.Minio.DownloadMinio(d, sessionID, val.Filename)
 		if err != nil {
 			return nil, err
 		}
 
 		input = model.FileSave{
-			Id:         fileID,
-			Name:       val.Filename,
-			SessionID:  sessionID,
-			DataBase64: domain.GetMimeType(val.FileBase64),
+			Id:        fileID,
+			Name:      val.Filename,
+			SessionID: sessionID,
+			MimeType:  domain.GetMimeType(val.FileBase64),
 		}
 
 		err = a.domains.File.Create(input)
@@ -147,16 +148,16 @@ func (a *Action) save(id, sessionID, filename string, files []model.File) (*mode
 		return nil, err
 	}
 
-	m, err := a.domains.Minio.DownloadMinio(data, filename)
+	m, err := a.domains.Minio.DownloadMinio(data, sessionID, filename)
 	if err != nil {
 		return nil, err
 	}
 
 	input = model.FileSave{
-		Id:         id,
-		Name:       filename,
-		SessionID:  sessionID,
-		DataBase64: ".zip",
+		Id:        id,
+		Name:      filename,
+		SessionID: sessionID,
+		MimeType:  ".zip",
 	}
 
 	err = a.domains.File.Create(input)
@@ -184,21 +185,19 @@ func (a *Action) DeleteFile(id string) answer.ErrorCode {
 }
 
 func (a *Action) downloadFile(id, sessionID string, files []model.File) error {
-	for i, val := range files {
+	for _, val := range files {
 		d, err := domain.DecodeFile(val.FileBase64)
 
-		name := fmt.Sprintf("%d-%s", i+1, val.Filename)
-
-		_, err = a.domains.Minio.DownloadMinio(d, name)
+		_, err = a.domains.Minio.DownloadMinio(d, sessionID, val.Filename)
 		if err != nil {
 			return err
 		}
 
 		v := model.FileSave{
-			Id:         id,
-			Name:       name,
-			SessionID:  sessionID,
-			DataBase64: domain.GetMimeType(val.FileBase64),
+			Id:        id,
+			Name:      val.Filename,
+			SessionID: sessionID,
+			MimeType:  domain.GetMimeType(val.FileBase64),
 		}
 
 		err = a.domains.File.Create(v)
@@ -234,7 +233,8 @@ func (a *Action) checkFilesID(sessionID string) ([]model.File, error) {
 			return nil, err
 		}
 
-		out, err := a.domains.Minio.GetByFilename(filename)
+		path := fmt.Sprintf("%s/%s", sessionID, filename)
+		out, err := a.domains.Minio.GetByFilename(path)
 		if err != nil {
 			return nil, err
 		}

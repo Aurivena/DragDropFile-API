@@ -140,16 +140,15 @@ func (d *FileService) ZipFiles(files []model.File, id string) ([]byte, error) {
 			log.Printf("[zipFiles] Пустой файл %d. Пропускаем.", i)
 			continue
 		}
-		headerName := fmt.Sprintf("%d-%s", i+1, data.Filename)
 		header := &zip.FileHeader{
-			Name:   headerName,
+			Name:   data.Filename,
 			Method: zip.Deflate,
 		}
 
 		fileInZip, err := zipW.CreateHeader(header)
 		if err != nil {
 			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при создании файла %d в zip-архиве: %w", header.Name, err)
+			return nil, fmt.Errorf("ошибка при создании файла %s в zip-архиве: %w", header.Name, err)
 		}
 
 		_, err = io.Copy(fileInZip, bytes.NewReader(fileBytes))
