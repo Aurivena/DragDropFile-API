@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"math/big"
-	"mime"
 	"strings"
 	"time"
 )
@@ -32,11 +31,15 @@ func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
 	return d.pers.GetIdFileBySession(sessionID)
 }
 
+func (d *FileService) GetFileBySession(sessionID string) ([]model.FileOutput, error) {
+	return d.pers.GetFileBySession(sessionID)
+}
+
 func (d *FileService) GetNameByID(id string) (string, error) {
 	return d.pers.GetNameByID(id)
 }
 
-func (d *FileService) GetZipMetaBySession(sessionID string) (*model.File, error) {
+func (d *FileService) GetZipMetaBySession(sessionID string) (*model.FileOutput, error) {
 	return d.pers.GetZipMetaBySession(sessionID)
 }
 
@@ -44,8 +47,8 @@ func (d *FileService) Delete(id string) error {
 	return d.pers.Delete(id)
 }
 
-func (d *FileService) GetDataBase64ByID(id string) (string, error) {
-	return d.pers.GetDataBase64ByID(id)
+func (d *FileService) GetMimeTypeByID(id string) (string, error) {
+	return d.pers.GetMimeTypeByID(id)
 }
 
 func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
@@ -122,12 +125,12 @@ func (d *FileService) ValidateCountDownload(sessionID string) error {
 	return nil
 }
 
-func (d *FileService) ZipFiles(filesBase64 []string, id string) ([]byte, error) {
+func (d *FileService) ZipFiles(files []model.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 
-	for i, base64Content := range filesBase64 {
-		fileBytes, filename, ext, err := DecodeFile(base64Content)
+	for i, data := range files {
+		fileBytes, err := DecodeFile(data.FileBase64)
 		if err != nil {
 			_ = zipW.Close()
 			return nil, fmt.Errorf("ошибка при обработке файла %s: %w", id, err)
@@ -137,7 +140,7 @@ func (d *FileService) ZipFiles(filesBase64 []string, id string) ([]byte, error) 
 			log.Printf("[zipFiles] Пустой файл %d. Пропускаем.", i)
 			continue
 		}
-		headerName := fmt.Sprintf("%s-%d%s", filename, i, ext)
+		headerName := fmt.Sprintf("%d-%s", i+1, data.Filename)
 		header := &zip.FileHeader{
 			Name:   headerName,
 			Method: zip.Deflate,
@@ -195,32 +198,19 @@ func GetMimeType(fileBase64 string) string {
 
 	return mimeType
 }
-func DecodeFile(fileBase64 string) ([]byte, string, string, error) {
+func DecodeFile(fileBase64 string) ([]byte, error) {
 	base64Data := fileBase64
-	var mimeType string
 
 	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
 		parts := strings.SplitN(fileBase64, ";base64,", 2)
-		if len(parts) == 2 {
-			base64Data = parts[1]
-			mimePart := parts[0]
-			if strings.HasPrefix(mimePart, "data:") {
-				mimeType = mimePart[len("data:"):]
-			}
-		}
+		base64Data = parts[1]
 	}
 
 	data, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
 		log.Printf("Ошибка декодирования Base64 для строки '%s': %v", fileBase64[:min(len(fileBase64), 50)], err)
-		return nil, "", "", fmt.Errorf("некорректные Base64 данные: %w", err)
+		return nil, fmt.Errorf("некорректные Base64 данные: %w", err)
 	}
 
-	ext, err := mime.ExtensionsByType(mimeType)
-	if err != nil || len(ext) == 0 {
-		log.Printf("Не удалось определить расширение по MIME-типу '%s': %v", mimeType, err)
-		return nil, "", "", err
-	}
-	filename := string(data)
-	return data, filename, ext[0], nil
+	return data, nil
 }

@@ -30,7 +30,7 @@ func (p *FilePersistence) Create(input model.FileSave) error {
 	return nil
 }
 
-func (p *FilePersistence) GetDataBase64ByID(id string) (string, error) {
+func (p *FilePersistence) GetMimeTypeByID(id string) (string, error) {
 	var dataBase64 string
 
 	err := p.db.Get(&dataBase64, `SELECT data_base64 FROM "File" WHERE id = $1`, id)
@@ -71,8 +71,8 @@ func (p *FilePersistence) GetIdFileBySession(sessionID string) ([]string, error)
 	return out, nil
 }
 
-func (p *FilePersistence) GetZipMetaBySession(sessionID string) (*model.File, error) {
-	var out model.File
+func (p *FilePersistence) GetZipMetaBySession(sessionID string) (*model.FileOutput, error) {
+	var out model.FileOutput
 	err := p.db.Get(&out, `SELECT id, name FROM "File" WHERE session = $1 AND name LIKE '%.zip'`, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -137,4 +137,15 @@ func (p *FilePersistence) GetSessionByID(id string) (string, error) {
 	}
 
 	return session, nil
+}
+
+func (p *FilePersistence) GetFileBySession(sessionID string) ([]model.FileOutput, error) {
+	var out []model.FileOutput
+
+	err := p.db.Select(&out, `SELECT id,name FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }

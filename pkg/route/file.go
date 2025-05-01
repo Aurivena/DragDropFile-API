@@ -13,14 +13,14 @@ import (
 // @Tags         File
 // @Accept       json
 // @Produce      json
-// @Param        input body model.FileSaveInput true "Входные данные"
+// @Param        input body model.File true "Входные данные"
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
 // @Success      200 {object} string "Файлы успешно сохранены"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
 func (r *Route) SaveFile(c *gin.Context) {
-	var input *model.FileSaveInput
+	var input *model.File
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return

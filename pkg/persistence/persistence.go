@@ -12,14 +12,15 @@ type File interface {
 	Delete(id string) error
 	GetNameByID(id string) (string, error)
 	GetIdFileBySession(sessionID string) ([]string, error)
-	GetZipMetaBySession(sessionID string) (*model.File, error)
-	GetDataBase64ByID(id string) (string, error)
+	GetZipMetaBySession(sessionID string) (*model.FileOutput, error)
+	GetMimeTypeByID(id string) (string, error)
 	DeleteFilesBySessionID(sessionID string) error
 	Get(sessionID string) (*model.Data, error)
 	UpdateCountDownload(count int, sessionID string) error
 	UpdateDateDeleted(dateDeleted time.Time, sessionID string) error
 	UpdatePassword(password string, sessionID string) error
 	GetSessionByID(id string) (string, error)
+	GetFileBySession(sessionID string) ([]model.FileOutput, error)
 }
 
 type Persistence struct {

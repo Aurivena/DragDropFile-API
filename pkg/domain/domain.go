@@ -13,13 +13,13 @@ type Minio interface {
 }
 
 type File interface {
-	GetZipMetaBySession(sessionID string) (*model.File, error)
+	GetZipMetaBySession(sessionID string) (*model.FileOutput, error)
 	GetIdFileBySession(sessionID string) ([]string, error)
 	Create(input model.FileSave) error
-	ZipFiles(filesBase64 []string, id string) ([]byte, error)
+	ZipFiles(files []model.File, id string) ([]byte, error)
 	GetNameByID(id string) (string, error)
 	Delete(id string) error
-	GetDataBase64ByID(id string) (string, error)
+	GetMimeTypeByID(id string) (string, error)
 	DeleteFilesBySessionID(sessionID string) error
 	ValidatePassword(input *model.FileGet) error
 	ValidateDateDeleted(sessionID string) error
@@ -28,6 +28,7 @@ type File interface {
 	UpdateCountDownload(count int, sessionID string) error
 	UpdateDateDeleted(countDayToDeleted int, sessionID string) error
 	UpdatePassword(password, sessionID string) error
+	GetFileBySession(sessionID string) ([]model.FileOutput, error)
 }
 
 type Domain struct {

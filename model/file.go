@@ -6,12 +6,13 @@ import (
 )
 
 type File struct {
-	Id   string `json:"id"`
-	Name string `json:"name" db:"name"`
+	Filename   string `json:"filename,omitempty"`
+	FileBase64 string `json:"fileBase64,omitempty"`
 }
 
-type FileSaveInput struct {
-	FileBase64 []string `json:"files"`
+type FileOutput struct {
+	Id   string `json:"id"`
+	Name string `json:"name" db:"name"`
 }
 
 type FileSave struct {
