@@ -1,7 +1,7 @@
 package action
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/domain"
 	"encoding/base64"
 	"fmt"
@@ -35,7 +35,7 @@ func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
 	return answer.NoContent
 }
 
-func (a *Action) GetFile(id string, input *model.FileGetInput) (*model.GetFileOutput, answer.ErrorCode) {
+func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFileOutput, answer.ErrorCode) {
 	filename, err := a.domains.File.GetNameByID(id)
 	if err != nil {
 		logrus.Error(err)
@@ -48,7 +48,7 @@ func (a *Action) GetFile(id string, input *model.FileGetInput) (*model.GetFileOu
 		return nil, answer.InternalServerError
 	}
 
-	f := model.FileGet{
+	f := models.FileGet{
 		SessionID: sessionID,
 		Password:  input.Password,
 	}
@@ -81,7 +81,7 @@ func (a *Action) GetFile(id string, input *model.FileGetInput) (*model.GetFileOu
 	return out, answer.OK
 }
 
-func (a *Action) Create(input *model.File, sessionID string) (*model.FilSaveOutput, answer.ErrorCode) {
+func (a *Action) Create(input *models.File, sessionID string) (*models.FilSaveOutput, answer.ErrorCode) {
 
 	id, err := domain.GenerateID()
 	if err != nil {
@@ -116,8 +116,8 @@ func (a *Action) Create(input *model.File, sessionID string) (*model.FilSaveOutp
 	return out, answer.OK
 }
 
-func (a *Action) save(id, sessionID, filename string, files []model.File) (*model.FilSaveOutput, error) {
-	var input model.FileSave
+func (a *Action) save(id, sessionID, filename string, files []models.File) (*models.FilSaveOutput, error) {
+	var input models.FileSave
 
 	for i, val := range files {
 		d, err := domain.DecodeFile(val.FileBase64)
@@ -130,7 +130,7 @@ func (a *Action) save(id, sessionID, filename string, files []model.File) (*mode
 			return nil, err
 		}
 
-		input = model.FileSave{
+		input = models.FileSave{
 			Id:        fileID,
 			Name:      val.Filename,
 			SessionID: sessionID,
@@ -153,7 +153,7 @@ func (a *Action) save(id, sessionID, filename string, files []model.File) (*mode
 		return nil, err
 	}
 
-	input = model.FileSave{
+	input = models.FileSave{
 		Id:        id,
 		Name:      filename,
 		SessionID: sessionID,
@@ -165,7 +165,7 @@ func (a *Action) save(id, sessionID, filename string, files []model.File) (*mode
 		return nil, err
 	}
 
-	out := model.FilSaveOutput{
+	out := models.FilSaveOutput{
 		ID:   id,
 		Size: m.Size,
 
@@ -184,7 +184,7 @@ func (a *Action) DeleteFile(id string) answer.ErrorCode {
 	return answer.NoContent
 }
 
-func (a *Action) downloadFile(id, sessionID string, files []model.File) error {
+func (a *Action) downloadFile(id, sessionID string, files []models.File) error {
 	for _, val := range files {
 		d, err := domain.DecodeFile(val.FileBase64)
 
@@ -193,7 +193,7 @@ func (a *Action) downloadFile(id, sessionID string, files []model.File) error {
 			return err
 		}
 
-		v := model.FileSave{
+		v := models.FileSave{
 			Id:        id,
 			Name:      val.Filename,
 			SessionID: sessionID,
@@ -208,9 +208,9 @@ func (a *Action) downloadFile(id, sessionID string, files []model.File) error {
 	return nil
 }
 
-func (a *Action) checkFilesID(sessionID string) ([]model.File, error) {
-	var filesBase64 []model.File
-	var file model.File
+func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
+	var filesBase64 []models.File
+	var file models.File
 
 	files, err := a.domains.File.GetFileBySession(sessionID)
 	if err != nil {

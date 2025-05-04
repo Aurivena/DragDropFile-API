@@ -1,7 +1,7 @@
 package persistence
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"database/sql"
 	"errors"
 	"github.com/jmoiron/sqlx"
@@ -20,7 +20,7 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 	return &FilePersistence{db: db}
 }
 
-func (p *FilePersistence) Create(input model.FileSave) error {
+func (p *FilePersistence) Create(input models.FileSave) error {
 	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, session, mime_type, password, date_deleted, count_download) VALUES($1,$2,$3,$4,$5,$6,$7)`,
 		input.Id, input.Name, input.SessionID, input.MimeType, nil, nil, nil)
 	if err != nil {
@@ -71,8 +71,8 @@ func (p *FilePersistence) GetIdFileBySession(sessionID string) ([]string, error)
 	return out, nil
 }
 
-func (p *FilePersistence) GetZipMetaBySession(sessionID string) (*model.FileOutput, error) {
-	var out model.FileOutput
+func (p *FilePersistence) GetZipMetaBySession(sessionID string) (*models.FileOutput, error) {
+	var out models.FileOutput
 	err := p.db.Get(&out, `SELECT id, name FROM "File" WHERE session = $1 AND name LIKE '%.zip'`, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -96,8 +96,8 @@ func (p *FilePersistence) DeleteFilesBySessionID(sessionID string) error {
 	return nil
 }
 
-func (p *FilePersistence) Get(sessionID string) (*model.Data, error) {
-	var out model.Data
+func (p *FilePersistence) Get(sessionID string) (*models.Data, error) {
+	var out models.Data
 
 	err := p.db.Get(&out, `SELECT password,date_deleted,count_download FROM "File" WHERE session = $1`, sessionID)
 	if err != nil {
@@ -139,8 +139,8 @@ func (p *FilePersistence) GetSessionByID(id string) (string, error) {
 	return session, nil
 }
 
-func (p *FilePersistence) GetFileBySession(sessionID string) ([]model.FileOutput, error) {
-	var out []model.FileOutput
+func (p *FilePersistence) GetFileBySession(sessionID string) ([]models.FileOutput, error) {
+	var out []models.FileOutput
 
 	err := p.db.Select(&out, `SELECT id,name FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
 	if err != nil {

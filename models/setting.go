@@ -1,4 +1,4 @@
-package model
+package models
 
 type ConfigService struct {
 	Server     ServerConfig     `json:"server" binding:"required"`

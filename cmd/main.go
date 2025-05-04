@@ -2,7 +2,7 @@ package main
 
 import (
 	"DragDrop-Files/initialization"
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/pkg/domain"
 	"DragDrop-Files/pkg/persistence"
@@ -47,7 +47,7 @@ func main() {
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *model.ServerConfig) {
+func run(server server.Server, routes *route.Route, config *models.ServerConfig) {
 	ginEgine := routes.InitHTTPRoutes(config)
 
 	if err := server.Run(config.Port, ginEgine); err != nil {

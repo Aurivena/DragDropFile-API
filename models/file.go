@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"github.com/minio/minio-go/v7"

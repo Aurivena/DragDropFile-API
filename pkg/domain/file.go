@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/persistence"
 	"archive/zip"
 	"bytes"
@@ -23,7 +23,7 @@ func NewFileService(pers *persistence.Persistence) *FileService {
 	return &FileService{pers: pers}
 }
 
-func (d *FileService) Create(input model.FileSave) error {
+func (d *FileService) Create(input models.FileSave) error {
 	return d.pers.Create(input)
 }
 
@@ -31,7 +31,7 @@ func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
 	return d.pers.GetIdFileBySession(sessionID)
 }
 
-func (d *FileService) GetFileBySession(sessionID string) ([]model.FileOutput, error) {
+func (d *FileService) GetFileBySession(sessionID string) ([]models.FileOutput, error) {
 	return d.pers.GetFileBySession(sessionID)
 }
 
@@ -39,7 +39,7 @@ func (d *FileService) GetNameByID(id string) (string, error) {
 	return d.pers.GetNameByID(id)
 }
 
-func (d *FileService) GetZipMetaBySession(sessionID string) (*model.FileOutput, error) {
+func (d *FileService) GetZipMetaBySession(sessionID string) (*models.FileOutput, error) {
 	return d.pers.GetZipMetaBySession(sessionID)
 }
 
@@ -70,7 +70,7 @@ func (d *FileService) UpdatePassword(password, sessionID string) error {
 	return d.pers.File.UpdatePassword(password, sessionID)
 }
 
-func (d *FileService) ValidatePassword(input *model.FileGet) error {
+func (d *FileService) ValidatePassword(input *models.FileGet) error {
 	out, err := d.pers.Get(input.SessionID)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (d *FileService) ValidateCountDownload(sessionID string) error {
 	return nil
 }
 
-func (d *FileService) ZipFiles(files []model.File, id string) ([]byte, error) {
+func (d *FileService) ZipFiles(files []models.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 

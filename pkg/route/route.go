@@ -1,7 +1,7 @@
 package route
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/server"
 	"github.com/gin-contrib/cors"
@@ -19,7 +19,7 @@ func NewRoute(action *action.Action) *Route {
 	return &Route{action: action}
 }
 
-func (r *Route) InitHTTPRoutes(config *model.ServerConfig) *gin.Engine {
+func (r *Route) InitHTTPRoutes(config *models.ServerConfig) *gin.Engine {
 	ginSetMode(config.ServerMode)
 	router := gin.Default()
 	allowOrigins := strings.Split(config.Domain, ",")

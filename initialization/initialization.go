@@ -1,7 +1,7 @@
 package initialization
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"encoding/json"
 	"os"
 
@@ -16,8 +16,8 @@ const (
 )
 
 var (
-	Environment   = &model.Environment{}
-	ConfigService = &model.ConfigService{}
+	Environment   = &models.Environment{}
+	ConfigService = &models.ConfigService{}
 )
 
 func LoadConfiguration() error {

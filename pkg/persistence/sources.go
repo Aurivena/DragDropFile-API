@@ -1,7 +1,7 @@
 package persistence
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewBusinessDatabase(config *model.ConfigService) *sqlx.DB {
+func NewBusinessDatabase(config *models.ConfigService) *sqlx.DB {
 	fmt.Println("start database connected")
 	database, err := NewPostgresDB(&PostgresDBConfig{
 		Host:     config.BusinessDB.Host,
@@ -27,7 +27,7 @@ func NewBusinessDatabase(config *model.ConfigService) *sqlx.DB {
 	return database
 }
 
-func NewMinioStorage(cfg model.MinioConfig) *minio.Client {
+func NewMinioStorage(cfg models.MinioConfig) *minio.Client {
 	client, err := minio.New(cfg.Endpoint, &minio.Options{Creds: credentials.NewStaticV4(cfg.User, cfg.Password, ""),
 		Secure: cfg.SSL})
 	if err != nil {

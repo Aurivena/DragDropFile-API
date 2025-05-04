@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"DragDrop-Files/model"
+	"DragDrop-Files/models"
 	"bytes"
 	"context"
 
@@ -14,10 +14,10 @@ import (
 
 type MinioService struct {
 	minioClient *minio.Client
-	cfg         *model.ConfigService
+	cfg         *models.ConfigService
 }
 
-func NewMinioService(minioClient *minio.Client, cfg *model.ConfigService) *MinioService {
+func NewMinioService(minioClient *minio.Client, cfg *models.ConfigService) *MinioService {
 	return &MinioService{minioClient: minioClient, cfg: cfg}
 }
 
@@ -39,8 +39,8 @@ func (s *MinioService) Delete(filename string) error {
 	return nil
 }
 
-func (s *MinioService) GetByFilename(path string) (*model.GetFileOutput, error) {
-	var out model.GetFileOutput
+func (s *MinioService) GetByFilename(path string) (*models.GetFileOutput, error) {
+	var out models.GetFileOutput
 	optsGet := minio.GetObjectOptions{}
 	objectReader, err := s.minioClient.GetObject(context.Background(), s.cfg.Minio.MinioBucketName, path, optsGet)
 	if err != nil {
