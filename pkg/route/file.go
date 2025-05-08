@@ -44,7 +44,7 @@ func (r *Route) SaveFile(c *gin.Context) {
 // @Success      200 {file} string "Файл успешно получен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
-// @Router       /file/:id [get]
+// @Router       /file/:id [post]
 func (r *Route) Get(c *gin.Context) {
 	id := c.Param("id")
 	var input models.FileGetInput
@@ -55,7 +55,7 @@ func (r *Route) Get(c *gin.Context) {
 
 	out, processStatus := r.action.GetFile(id, &input)
 	if processStatus != answer.OK {
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
+		answer.SendResponseSuccess(c, nil, processStatus)
 		return
 	}
 

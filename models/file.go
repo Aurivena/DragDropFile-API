@@ -40,12 +40,12 @@ type Data struct {
 }
 
 type FileGetInput struct {
-	Password *string `json:"password"`
+	Password string `json:"password"`
 }
 
 type FileGet struct {
 	SessionID string
-	Password  *string
+	Password  string
 }
 
 type FileUpdate struct {

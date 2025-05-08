@@ -76,7 +76,7 @@ func (d *FileService) ValidatePassword(input *models.FileGet) error {
 		return err
 	}
 
-	if out.Password != nil && *out.Password != *input.Password {
+	if out.Password != nil && *out.Password != input.Password {
 		return fmt.Errorf("пароли не совпадают")
 	}
 
