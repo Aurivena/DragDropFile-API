@@ -39,13 +39,19 @@ type Data struct {
 	CountDownload *int       `json:"count_download" db:"count_download"`
 }
 
+type DataOutput struct {
+	Password      bool       `json:"password" db:"password"`
+	DateDeleted   *time.Time `json:"date_deleted" db:"date_deleted"`
+	CountDownload *int       `json:"count_download" db:"count_download"`
+}
+
 type FileGetInput struct {
 	Password string `json:"password"`
 }
 
 type FileGet struct {
-	SessionID string
-	Password  string
+	ID       string
+	Password string
 }
 
 type FileUpdate struct {

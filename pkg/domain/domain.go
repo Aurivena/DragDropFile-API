@@ -22,13 +22,14 @@ type File interface {
 	GetMimeTypeByID(id string) (string, error)
 	DeleteFilesBySessionID(sessionID string) error
 	ValidatePassword(input *models.FileGet) error
-	ValidateDateDeleted(sessionID string) error
-	ValidateCountDownload(sessionID string) error
+	ValidateDateDeleted(id string) error
+	ValidateCountDownload(id string) error
 	GetSessionByID(id string) (string, error)
 	UpdateCountDownload(count int, sessionID string) error
 	UpdateDateDeleted(countDayToDeleted int, sessionID string) error
 	UpdatePassword(password, sessionID string) error
 	GetFileBySession(sessionID string) ([]models.FileOutput, error)
+	GetDataFile(id string) (*models.DataOutput, error)
 }
 
 type Domain struct {

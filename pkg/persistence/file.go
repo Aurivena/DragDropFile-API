@@ -16,6 +16,14 @@ type FilePersistence struct {
 	db *sqlx.DB
 }
 
+func (p *FilePersistence) DeleteFilesByFileID(id string) error {
+	_, err := p.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 	return &FilePersistence{db: db}
 }
@@ -96,18 +104,18 @@ func (p *FilePersistence) DeleteFilesBySessionID(sessionID string) error {
 	return nil
 }
 
-func (p *FilePersistence) Get(sessionID string) (*models.Data, error) {
+func (p *FilePersistence) Get(id string) (*models.Data, error) {
 	var out models.Data
 
-	err := p.db.Get(&out, `SELECT password,date_deleted,count_download FROM "File" WHERE session = $1`, sessionID)
+	err := p.db.Get(&out, `SELECT password,date_deleted,count_download FROM "File" WHERE id = $1`, id)
 	if err != nil {
 		return nil, err
 	}
 	return &out, nil
 }
 
-func (p *FilePersistence) UpdateCountDownload(count int, sessionID string) error {
-	_, err := p.db.Exec(`UPDATE "File" SET count_download = $1 WHERE session = $2`, count, sessionID)
+func (p *FilePersistence) UpdateCountDownload(count int, id string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET count_download = $1 WHERE id = $2`, count, id)
 	if err != nil {
 		return err
 	}
@@ -148,4 +156,14 @@ func (p *FilePersistence) GetFileBySession(sessionID string) ([]models.FileOutpu
 	}
 
 	return out, nil
+}
+
+func (p *FilePersistence) GetDataFile(id string) (*models.DataOutput, error) {
+	var out models.DataOutput
+
+	err := p.db.Get(&out, `SELECT EXISTS(SELECT password FROM "File" WHERE password != '') as password,date_deleted,count_download FROM "File" WHERE id =$1`, id)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }

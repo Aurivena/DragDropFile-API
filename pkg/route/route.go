@@ -34,6 +34,7 @@ func (r *Route) InitHTTPRoutes(config *models.ServerConfig) *gin.Engine {
 
 	api := router.Group("/api")
 	{
+		api.GET("/file/:id/data", r.GetDataFile)
 		api.POST("/file/save", r.SaveFile)
 		api.POST("/file/:id", r.Get)
 		api.PUT("file/update/deleted", r.UpdateCountDayToDeleted)

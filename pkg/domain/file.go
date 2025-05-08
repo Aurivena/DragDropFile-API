@@ -19,6 +19,10 @@ type FileService struct {
 	pers *persistence.Persistence
 }
 
+func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
+	return d.pers.GetDataFile(id)
+}
+
 func NewFileService(pers *persistence.Persistence) *FileService {
 	return &FileService{pers: pers}
 }
@@ -71,20 +75,23 @@ func (d *FileService) UpdatePassword(password, sessionID string) error {
 }
 
 func (d *FileService) ValidatePassword(input *models.FileGet) error {
-	out, err := d.pers.Get(input.SessionID)
+
+	out, err := d.pers.Get(input.ID)
 	if err != nil {
 		return err
 	}
-
-	if out.Password != nil && *out.Password != input.Password {
+	if out.Password == nil && input.Password == "" {
+		return nil
+	}
+	if out.Password == nil || *out.Password != input.Password {
 		return fmt.Errorf("пароли не совпадают")
 	}
 
 	return nil
 }
 
-func (d *FileService) ValidateDateDeleted(sessionID string) error {
-	out, err := d.pers.Get(sessionID)
+func (d *FileService) ValidateDateDeleted(id string) error {
+	out, err := d.pers.Get(id)
 	if err != nil {
 		return err
 	}
@@ -92,7 +99,7 @@ func (d *FileService) ValidateDateDeleted(sessionID string) error {
 	if out.DateDeleted != nil {
 		now := time.Now().UTC()
 		if !now.Before(out.DateDeleted.UTC()) {
-			if err := d.pers.File.DeleteFilesBySessionID(sessionID); err != nil {
+			if err := d.pers.File.DeleteFilesByFileID(id); err != nil {
 				return err
 			}
 			return fmt.Errorf("срок хранения этого файла истек. свяжитесь с владельцем")
@@ -101,14 +108,14 @@ func (d *FileService) ValidateDateDeleted(sessionID string) error {
 
 	return nil
 }
-func (d *FileService) ValidateCountDownload(sessionID string) error {
-	out, err := d.pers.Get(sessionID)
+func (d *FileService) ValidateCountDownload(id string) error {
+	out, err := d.pers.Get(id)
 	if err != nil {
 		return err
 	}
 
 	if out.CountDownload != nil && *out.CountDownload <= 0 {
-		err := d.pers.File.DeleteFilesBySessionID(sessionID)
+		err := d.pers.File.DeleteFilesByFileID(id)
 		if err != nil {
 			return err
 		}
@@ -117,7 +124,7 @@ func (d *FileService) ValidateCountDownload(sessionID string) error {
 
 	if out.CountDownload != nil && *out.CountDownload >= 0 {
 		c := *out.CountDownload - 1
-		err := d.pers.File.UpdateCountDownload(c, sessionID)
+		err := d.pers.File.UpdateCountDownload(c, id)
 		if err != nil {
 			return err
 		}

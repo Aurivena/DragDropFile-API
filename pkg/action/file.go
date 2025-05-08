@@ -50,8 +50,8 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 	}
 
 	f := models.FileGet{
-		SessionID: sessionID,
-		Password:  input.Password,
+		ID:       id,
+		Password: input.Password,
 	}
 
 	err = a.domains.ValidatePassword(&f)
@@ -60,13 +60,13 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 		return nil, answer.Unauthorized
 	}
 
-	err = a.domains.ValidateCountDownload(sessionID)
+	err = a.domains.ValidateCountDownload(id)
 	if err != nil {
 		logrus.Error(err)
 		return nil, answer.InternalServerError
 	}
 
-	err = a.domains.ValidateDateDeleted(sessionID)
+	err = a.domains.ValidateDateDeleted(id)
 	if err != nil {
 		logrus.Error(err)
 		return nil, answer.InternalServerError
@@ -187,6 +187,14 @@ func (a *Action) DeleteFile(id string) answer.ErrorCode {
 	}
 
 	return answer.NoContent
+}
+
+func (a *Action) GetDataFile(id string) (*models.DataOutput, answer.ErrorCode) {
+	out, err := a.domains.GetDataFile(id)
+	if err != nil {
+		return nil, answer.InternalServerError
+	}
+	return out, answer.OK
 }
 
 func (a *Action) downloadFile(id, sessionID string, files []models.File) error {

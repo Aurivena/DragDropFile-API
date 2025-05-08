@@ -35,6 +35,21 @@ func (r *Route) SaveFile(c *gin.Context) {
 	answer.SendResponseSuccess(c, output, processStatus)
 }
 
+// @Summary      Получить данные файла
+// @Description  Получает данные файла по указаному id.
+// @Tags         File
+// @Produce      json
+// @Param        id path string true "Идентификатор файла"
+// @Success      200 {object} models.FilSaveOutput "Файл успешно сохранен"
+// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Router       /file/:id/data [get]
+func (r *Route) GetDataFile(c *gin.Context) {
+	id := c.Param("id")
+
+	output, processStatus := r.action.GetDataFile(id)
+	answer.SendResponseSuccess(c, output, processStatus)
+}
+
 // @Summary      Получить файл
 // @Description  Получает файл по переданному идентификатору.
 // @Tags         File
