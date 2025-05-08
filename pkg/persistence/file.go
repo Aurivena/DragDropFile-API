@@ -12,6 +12,11 @@ const (
 	errorNoSqlResult = "sql: no rows in result set"
 )
 
+var (
+	dateDeleted   = time.Now().AddDate(1, 0, 0).UTC()
+	countDownload = 365
+)
+
 type FilePersistence struct {
 	db *sqlx.DB
 }
@@ -29,8 +34,9 @@ func NewFiePersistence(db *sqlx.DB) *FilePersistence {
 }
 
 func (p *FilePersistence) Create(input models.FileSave) error {
+
 	_, err := p.db.Exec(`INSERT INTO "File"  (id, name, session, mime_type, password, date_deleted, count_download) VALUES($1,$2,$3,$4,$5,$6,$7)`,
-		input.Id, input.Name, input.SessionID, input.MimeType, nil, nil, nil)
+		input.Id, input.Name, input.SessionID, input.MimeType, nil, dateDeleted, countDownload)
 	if err != nil {
 		return err
 	}
