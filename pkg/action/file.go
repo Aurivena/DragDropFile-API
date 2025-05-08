@@ -216,6 +216,9 @@ func (a *Action) DeleteFile(id string) answer.ErrorCode {
 func (a *Action) GetDataFile(id string) (*models.DataOutput, answer.ErrorCode) {
 	out, err := a.domains.GetDataFile(id)
 	if err != nil {
+		if errors.As(err, &ErrorFileDeleted) {
+			return nil, Gone
+		}
 		return nil, answer.InternalServerError
 	}
 	return out, answer.OK

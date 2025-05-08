@@ -27,6 +27,9 @@ func (d *FileService) GetByID(id string) (*models.FileOutput, error) {
 func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
 	out, err := d.pers.GetDataFile(id)
 	if err != nil {
+		if err.Error() == "no sql result" {
+			return nil, errors.New("file deleted")
+		}
 		return nil, err
 	}
 	data := models.DataOutput{
