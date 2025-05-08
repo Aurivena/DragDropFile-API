@@ -57,7 +57,7 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 	err = a.domains.ValidatePassword(&f)
 	if err != nil {
 		logrus.Error(err)
-		return nil, answer.BadRequest
+		return nil, answer.Unauthorized
 	}
 
 	err = a.domains.ValidateCountDownload(sessionID)

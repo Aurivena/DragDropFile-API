@@ -43,6 +43,7 @@ func (r *Route) SaveFile(c *gin.Context) {
 // @Param        id path string true "Идентификатор файла"
 // @Success      200 {file} string "Файл успешно получен"
 // @Failure      400 {object} string "Некорректные данные"
+// @Failure      401 {object} string "Неверный пароль"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id [post]
 func (r *Route) Get(c *gin.Context) {
