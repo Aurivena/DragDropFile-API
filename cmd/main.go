@@ -21,6 +21,9 @@ func init() {
 	if err := initialization.LoadConfiguration(); err != nil {
 		logrus.Fatal(err.Error())
 	}
+	if err := initialization.ErrorInitialization(); err != nil {
+		logrus.Fatal(err.Error())
+	}
 	logrus.Info("end init server")
 }
 

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -20,7 +21,16 @@ type FileService struct {
 }
 
 func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
-	return d.pers.GetDataFile(id)
+	out, err := d.pers.GetDataFile(id)
+	if err != nil {
+		return nil, err
+	}
+	data := models.DataOutput{
+		Password:      out.Password,
+		DateDeleted:   out.DateDeleted,
+		CountDownload: out.CountDownload,
+	}
+	return &data, nil
 }
 
 func NewFileService(pers *persistence.Persistence) *FileService {
@@ -32,15 +42,19 @@ func (d *FileService) Create(input models.FileSave) error {
 }
 
 func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
-	return d.pers.GetIdFileBySession(sessionID)
+	return d.pers.GetIdFilesBySession(sessionID)
 }
 
 func (d *FileService) GetFileBySession(sessionID string) ([]models.FileOutput, error) {
-	return d.pers.GetFileBySession(sessionID)
+	return d.pers.GetFilesBySessionNotZip(sessionID)
 }
 
 func (d *FileService) GetNameByID(id string) (string, error) {
-	return d.pers.GetNameByID(id)
+	out, err := d.pers.GetByID(id)
+	if err != nil {
+		return "", err
+	}
+	return out.Name, nil
 }
 
 func (d *FileService) GetZipMetaBySession(sessionID string) (*models.FileOutput, error) {
@@ -52,7 +66,11 @@ func (d *FileService) Delete(id string) error {
 }
 
 func (d *FileService) GetMimeTypeByID(id string) (string, error) {
-	return d.pers.GetMimeTypeByID(id)
+	out, err := d.pers.GetByID(id)
+	if err != nil {
+		return "", err
+	}
+	return out.MimeType, nil
 }
 
 func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
@@ -60,7 +78,11 @@ func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
 }
 
 func (d *FileService) GetSessionByID(id string) (string, error) {
-	return d.pers.GetSessionByID(id)
+	out, err := d.pers.GetByID(id)
+	if err != nil {
+		return "", err
+	}
+	return out.Session, nil
 }
 
 func (d *FileService) UpdateCountDownload(count int, id string) error {
@@ -76,7 +98,7 @@ func (d *FileService) UpdatePassword(password, id string) error {
 
 func (d *FileService) ValidatePassword(input *models.FileGet) error {
 
-	out, err := d.pers.Get(input.ID)
+	out, err := d.pers.GetByID(input.ID)
 	if err != nil {
 		return err
 	}
@@ -91,56 +113,37 @@ func (d *FileService) ValidatePassword(input *models.FileGet) error {
 }
 
 func (d *FileService) ValidateDateDeleted(id string) error {
-	out, err := d.pers.Get(id)
+	out, err := d.pers.GetByID(id)
 	if err != nil {
 		return err
 	}
 
-	if out.DateDeleted != nil {
-		now := time.Now().UTC()
-		if !now.Before(out.DateDeleted.UTC()) {
-			if err := d.deleteFiles(id); err != nil {
-				return err
-			}
-			return fmt.Errorf("срок хранения этого файла истек. свяжитесь с владельцем")
+	now := time.Now().UTC()
+	if !now.Before(out.DateDeleted.UTC()) {
+		if err := d.deleteFiles(id); err != nil {
+			return err
 		}
+		return errors.New("file deleted")
 	}
 
 	return nil
 }
 
-func (d *FileService) deleteFiles(id string) error {
-	session, err := d.pers.GetSessionByID(id)
-	if err != nil {
-		return err
-	}
-
-	err = d.pers.DeleteFilesByFileID(id)
-	if err != nil {
-		return err
-	}
-	err = d.pers.DeleteFilesBySessionID(session)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (d *FileService) ValidateCountDownload(id string) error {
-	out, err := d.pers.Get(id)
+	out, err := d.pers.GetByID(id)
 	if err != nil {
 		return err
 	}
-
-	if out.CountDownload != nil && *out.CountDownload <= 0 {
+	if out.CountDownload == 0 {
 		err := d.deleteFiles(id)
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("количество загрузрк для этого файла исерпано. свяжитесь с владельцем")
+		return errors.New("file deleted")
 	}
 
-	if out.CountDownload != nil && *out.CountDownload >= 0 {
-		c := *out.CountDownload - 1
+	if out.CountDownload > 0 {
+		c := out.CountDownload - 1
 		err := d.pers.File.UpdateCountDownload(c, id)
 		if err != nil {
 			return err
@@ -236,4 +239,21 @@ func DecodeFile(fileBase64 string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func (d *FileService) deleteFiles(id string) error {
+	out, err := d.pers.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	err = d.pers.DeleteFilesByFileID(id)
+	if err != nil {
+		return err
+	}
+	err = d.pers.DeleteFilesBySessionID(out.Session)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -4,11 +4,20 @@ import (
 	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/domain"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/Aurivena/answer"
 	"github.com/sirupsen/logrus"
 	"io"
 	"mime/multipart"
+)
+
+const (
+	Gone = 410
+)
+
+var (
+	ErrorFileDeleted = errors.New("file deleted")
 )
 
 func (a *Action) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
@@ -78,12 +87,18 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 	err = a.domains.ValidateCountDownload(id)
 	if err != nil {
 		logrus.Error(err)
+		if errors.As(err, &ErrorFileDeleted) {
+			return nil, Gone
+		}
 		return nil, answer.InternalServerError
 	}
 
 	err = a.domains.ValidateDateDeleted(id)
 	if err != nil {
 		logrus.Error(err)
+		if errors.As(err, &ErrorFileDeleted) {
+			return nil, Gone
+		}
 		return nil, answer.InternalServerError
 	}
 

@@ -3,6 +3,7 @@ package initialization
 import (
 	"DragDrop-Files/models"
 	"encoding/json"
+	"github.com/Aurivena/answer"
 	"os"
 
 	"github.com/caarlos0/env/v6"
@@ -20,6 +21,13 @@ var (
 	ConfigService = &models.ConfigService{}
 )
 
+func ErrorInitialization() error {
+	err := answer.AppendCode(410, "Gone")
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func LoadConfiguration() error {
 	if err := loadEnvironment(); err != nil {
 		return err

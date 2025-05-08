@@ -21,6 +21,17 @@ type FilePersistence struct {
 	db *sqlx.DB
 }
 
+func (p *FilePersistence) GetByID(id string) (*models.FileOutput, error) {
+	var out models.FileOutput
+
+	err := p.db.Get(&out, `SELECT * FROM "File" WHERE id =$1`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, err
+}
+
 func (p *FilePersistence) DeleteFilesByFileID(id string) error {
 	_, err := p.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
 	if err != nil {
@@ -153,10 +164,21 @@ func (p *FilePersistence) GetSessionByID(id string) (string, error) {
 	return session, nil
 }
 
-func (p *FilePersistence) GetFileBySession(sessionID string) ([]models.FileOutput, error) {
+func (p *FilePersistence) GetIdFilesBySession(sessionID string) ([]string, error) {
+	var out []string
+
+	err := p.db.Select(&out, `SELECT id FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
+	if err != nil && err.Error() != errorNoSqlResult {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (p *FilePersistence) GetFilesBySessionNotZip(sessionID string) ([]models.FileOutput, error) {
 	var out []models.FileOutput
 
-	err := p.db.Select(&out, `SELECT id,name FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
+	err := p.db.Select(&out, `SELECT * FROM "File" WHERE session = $1 AND name NOT LIKE '%.zip'`, sessionID)
 	if err != nil {
 		return nil, err
 	}
