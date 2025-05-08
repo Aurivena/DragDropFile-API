@@ -8,6 +8,7 @@ import (
 	"github.com/Aurivena/answer"
 	"github.com/sirupsen/logrus"
 	"io"
+	"mime/multipart"
 )
 
 func (a *Action) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
@@ -81,7 +82,11 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 	return out, answer.OK
 }
 
-func (a *Action) Create(input *models.File, sessionID string) (*models.FilSaveOutput, answer.ErrorCode) {
+func (a *Action) Create(sessionID string, file multipart.File, header *multipart.FileHeader) (*models.FilSaveOutput, answer.ErrorCode) {
+	fileData, err := getFileData(file, header)
+	if err != nil {
+		return nil, answer.InternalServerError
+	}
 
 	id, err := domain.GenerateID()
 	if err != nil {
@@ -97,7 +102,7 @@ func (a *Action) Create(input *models.File, sessionID string) (*models.FilSaveOu
 	}
 
 	if filesBase64 != nil {
-		filesBase64 = append(filesBase64, *input)
+		filesBase64 = append(filesBase64, *fileData)
 
 		out, err := a.save(id, sessionID, filename, filesBase64)
 		if err != nil {
@@ -106,7 +111,7 @@ func (a *Action) Create(input *models.File, sessionID string) (*models.FilSaveOu
 		return out, answer.OK
 	}
 
-	filesBase64 = append(filesBase64, *input)
+	filesBase64 = append(filesBase64, *fileData)
 
 	out, err := a.save(id, sessionID, filename, filesBase64)
 	if err != nil {
@@ -264,4 +269,22 @@ func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
 	}
 
 	return filesBase64, nil
+}
+
+func getFileData(file multipart.File, header *multipart.FileHeader) (*models.File, error) {
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(fileBytes)
+	mimeType := header.Header.Get("Content-Type")
+	fileBase64 := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
+
+	fileData := models.File{
+		FileBase64: fileBase64,
+		Filename:   header.Filename,
+	}
+	return &fileData, nil
 }

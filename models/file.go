@@ -6,8 +6,8 @@ import (
 )
 
 type File struct {
-	Filename   string `json:"filename,omitempty"`
-	FileBase64 string `json:"fileBase64,omitempty"`
+	FileBase64 string `form:"file"`
+	Filename   string `form:"filename"`
 }
 
 type FileOutput struct {

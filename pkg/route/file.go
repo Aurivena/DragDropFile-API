@@ -5,36 +5,34 @@ import (
 	"fmt"
 	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"log"
 )
 
-// @Summary      Сохранить файлы
-// @Description  Сохраняет файлы и параметры, переданные пользователем.
+// @Summary      Сохранить файл
+// @Description  Сохраняет файл и параметры, переданные пользователем.
 // @Tags         File
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
-// @Param        input body models.File true "Входные данные"
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
-// @Success      200 {object} model.FilSaveOutput "Файлы успешно сохранены"
+// @Param        file formData file true "Файл для загрузки"
+// @Success      200 {object} models.FilSaveOutput "Файл успешно сохранен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
 func (r *Route) SaveFile(c *gin.Context) {
-	var input *models.File
-	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
+	sessionID := c.GetHeader("X-Session-ID")
+
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		logrus.WithError(err).Error("failed to get file from request")
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
 	}
+	defer file.Close()
 
-	sessionID := c.GetHeader("X-Session-ID")
-
-	out, processStatus := r.action.Create(input, sessionID)
-	if processStatus != answer.OK {
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
-		return
-	}
-
-	answer.SendResponseSuccess(c, out, processStatus)
+	output, processStatus := r.action.Create(sessionID, file, header)
+	answer.SendResponseSuccess(c, output, processStatus)
 }
 
 // @Summary      Получить файл
@@ -102,11 +100,6 @@ func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := r.action.UpdateDateDeleted(input.CountDayToDeleted, sessionID)
-	if processStatus != answer.NoContent {
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
-		return
-	}
-
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
 
@@ -131,11 +124,6 @@ func (r *Route) UpdatePassword(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := r.action.UpdatePassword(input.Password, sessionID)
-	if processStatus != answer.NoContent {
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
-		return
-	}
-
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
 
@@ -160,10 +148,5 @@ func (r *Route) UpdateCountDownload(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := r.action.UpdateCountDownload(input.CountDownload, sessionID)
-	if processStatus != answer.NoContent {
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
-		return
-	}
-
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
