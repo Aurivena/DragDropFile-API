@@ -187,9 +187,9 @@ func (p *FilePersistence) GetFilesBySessionNotZip(sessionID string) ([]models.Fi
 }
 
 func (p *FilePersistence) GetDataFile(id string) (*models.DataOutput, error) {
-	var out models.DataOutput
 
-	err := p.db.Get(&out, `SELECT EXISTS(password IS NOT NULL password FROM "File" WHERE password != '') as password,date_deleted,count_download FROM "File" WHERE id =$1`, id)
+	var out models.DataOutput
+	err := p.db.Get(&out, `SELECT (password IS NOT NULL AND password != '') AS password,date_deleted,count_download FROM "File" WHERE id =$1`, id)
 	if err != nil {
 		return nil, err
 	}
