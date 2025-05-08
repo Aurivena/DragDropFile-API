@@ -61,16 +61,10 @@ func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
 }
 
 func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFileOutput, answer.ErrorCode) {
-	filename, err := a.domains.File.GetNameByID(id)
+	file, err := a.domains.File.GetByID(id)
 	if err != nil {
 		logrus.Error(err)
 		return nil, answer.BadRequest
-	}
-
-	sessionID, err := a.domains.File.GetSessionByID(id)
-	if err != nil {
-		logrus.Error(err)
-		return nil, answer.InternalServerError
 	}
 
 	f := models.FileGet{
@@ -102,7 +96,7 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 		return nil, answer.InternalServerError
 	}
 
-	path := fmt.Sprintf("%s/%s", sessionID, filename)
+	path := fmt.Sprintf("%s/%s", file.Session, file.Name)
 	out, err := a.domains.Minio.GetByFilename(path)
 	if err != nil {
 		logrus.Error(err)
@@ -255,7 +249,7 @@ func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
 	var filesBase64 []models.File
 	var file models.File
 
-	files, err := a.domains.File.GetFileBySession(sessionID)
+	files, err := a.domains.File.GetFilesBySession(sessionID)
 	if err != nil {
 		logrus.Error(err)
 		return nil, err
@@ -266,17 +260,8 @@ func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
 	}
 
 	for _, val := range files {
-		filename, err := a.domains.File.GetNameByID(val.Id)
-		if err != nil {
-			return nil, err
-		}
 
-		mimeType, err := a.domains.File.GetMimeTypeByID(val.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		path := fmt.Sprintf("%s/%s", sessionID, filename)
+		path := fmt.Sprintf("%s/%s", sessionID, val.Name)
 		out, err := a.domains.Minio.GetByFilename(path)
 		if err != nil {
 			return nil, err
@@ -289,14 +274,14 @@ func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
 
 		encoded := base64.StdEncoding.EncodeToString(content)
 
-		fileBase64 := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
+		fileBase64 := fmt.Sprintf("data:%s;base64,%s", val.MimeType, encoded)
 
 		file.FileBase64 = fileBase64
-		file.Filename = filename
+		file.Filename = val.Name
 
 		filesBase64 = append(filesBase64, file)
 
-		err = a.domains.Minio.Delete(filename)
+		err = a.domains.Minio.Delete(val.Name)
 		if err != nil {
 			return nil, err
 		}

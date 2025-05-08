@@ -20,6 +20,10 @@ type FileService struct {
 	pers *persistence.Persistence
 }
 
+func (d *FileService) GetByID(id string) (*models.FileOutput, error) {
+	return d.pers.GetByID(id)
+}
+
 func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
 	out, err := d.pers.GetDataFile(id)
 	if err != nil {
@@ -45,7 +49,7 @@ func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
 	return d.pers.GetIdFilesBySession(sessionID)
 }
 
-func (d *FileService) GetFileBySession(sessionID string) ([]models.FileOutput, error) {
+func (d *FileService) GetFilesBySession(sessionID string) ([]models.FileOutput, error) {
 	return d.pers.GetFilesBySessionNotZip(sessionID)
 }
 

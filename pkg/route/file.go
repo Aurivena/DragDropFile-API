@@ -59,6 +59,7 @@ func (r *Route) GetDataFile(c *gin.Context) {
 // @Success      200 {file} models. "Файл успешно получен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      401 {object} string "Неверный пароль"
+// @Failure      410 {object} string "Хранение файла закончено. Файл удален"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id [post]
 func (r *Route) Get(c *gin.Context) {

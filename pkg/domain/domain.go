@@ -17,19 +17,17 @@ type File interface {
 	GetIdFileBySession(sessionID string) ([]string, error)
 	Create(input models.FileSave) error
 	ZipFiles(files []models.File, id string) ([]byte, error)
-	GetNameByID(id string) (string, error)
 	Delete(id string) error
-	GetMimeTypeByID(id string) (string, error)
 	DeleteFilesBySessionID(sessionID string) error
 	ValidatePassword(input *models.FileGet) error
 	ValidateDateDeleted(id string) error
 	ValidateCountDownload(id string) error
-	GetSessionByID(id string) (string, error)
 	UpdateCountDownload(count int, id string) error
 	UpdateDateDeleted(countDayToDeleted int, id string) error
 	UpdatePassword(password, id string) error
-	GetFileBySession(sessionID string) ([]models.FileOutput, error)
+	GetFilesBySession(sessionID string) ([]models.FileOutput, error)
 	GetDataFile(id string) (*models.DataOutput, error)
+	GetByID(id string) (*models.FileOutput, error)
 }
 
 type Domain struct {
