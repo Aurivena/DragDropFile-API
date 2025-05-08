@@ -127,15 +127,15 @@ func (p *FilePersistence) UpdateCountDownload(count int, id string) error {
 	}
 	return nil
 }
-func (p *FilePersistence) UpdateDateDeleted(dateDeleted time.Time, sessionID string) error {
-	_, err := p.db.Exec(`UPDATE "File" SET date_deleted = $1 WHERE session = $2`, dateDeleted, sessionID)
+func (p *FilePersistence) UpdateDateDeleted(dateDeleted time.Time, id string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET date_deleted = $1 WHERE id = $2`, dateDeleted, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (p *FilePersistence) UpdatePassword(password string, sessionID string) error {
-	_, err := p.db.Exec(`UPDATE "File" SET password = $1 WHERE session = $2`, password, sessionID)
+func (p *FilePersistence) UpdatePassword(password string, id string) error {
+	_, err := p.db.Exec(`UPDATE "File" SET password = $1 WHERE id = $2`, password, id)
 	if err != nil {
 		return err
 	}

@@ -25,9 +25,9 @@ type File interface {
 	ValidateDateDeleted(id string) error
 	ValidateCountDownload(id string) error
 	GetSessionByID(id string) (string, error)
-	UpdateCountDownload(count int, sessionID string) error
-	UpdateDateDeleted(countDayToDeleted int, sessionID string) error
-	UpdatePassword(password, sessionID string) error
+	UpdateCountDownload(count int, id string) error
+	UpdateDateDeleted(countDayToDeleted int, id string) error
+	UpdatePassword(password, id string) error
 	GetFileBySession(sessionID string) ([]models.FileOutput, error)
 	GetDataFile(id string) (*models.DataOutput, error)
 }

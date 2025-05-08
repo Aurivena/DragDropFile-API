@@ -18,8 +18,8 @@ type File interface {
 	DeleteFilesByFileID(id string) error
 	Get(id string) (*models.Data, error)
 	UpdateCountDownload(count int, id string) error
-	UpdateDateDeleted(dateDeleted time.Time, sessionID string) error
-	UpdatePassword(password string, sessionID string) error
+	UpdateDateDeleted(dateDeleted time.Time, id string) error
+	UpdatePassword(password string, id string) error
 	GetSessionByID(id string) (string, error)
 	GetFileBySession(sessionID string) ([]models.FileOutput, error)
 	GetDataFile(id string) (*models.DataOutput, error)

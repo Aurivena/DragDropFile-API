@@ -63,15 +63,15 @@ func (d *FileService) GetSessionByID(id string) (string, error) {
 	return d.pers.GetSessionByID(id)
 }
 
-func (d *FileService) UpdateCountDownload(count int, sessionID string) error {
-	return d.pers.File.UpdateCountDownload(count, sessionID)
+func (d *FileService) UpdateCountDownload(count int, id string) error {
+	return d.pers.File.UpdateCountDownload(count, id)
 }
-func (d *FileService) UpdateDateDeleted(countDayToDeleted int, sessionID string) error {
+func (d *FileService) UpdateDateDeleted(countDayToDeleted int, id string) error {
 	dateDeleted := time.Now().UTC().Add(time.Hour * 24 * time.Duration(countDayToDeleted))
-	return d.pers.File.UpdateDateDeleted(dateDeleted, sessionID)
+	return d.pers.File.UpdateDateDeleted(dateDeleted, id)
 }
-func (d *FileService) UpdatePassword(password, sessionID string) error {
-	return d.pers.File.UpdatePassword(password, sessionID)
+func (d *FileService) UpdatePassword(password, id string) error {
+	return d.pers.File.UpdatePassword(password, id)
 }
 
 func (d *FileService) ValidatePassword(input *models.FileGet) error {
@@ -99,13 +99,30 @@ func (d *FileService) ValidateDateDeleted(id string) error {
 	if out.DateDeleted != nil {
 		now := time.Now().UTC()
 		if !now.Before(out.DateDeleted.UTC()) {
-			if err := d.pers.File.DeleteFilesByFileID(id); err != nil {
+			if err := d.deleteFiles(id); err != nil {
 				return err
 			}
 			return fmt.Errorf("срок хранения этого файла истек. свяжитесь с владельцем")
 		}
 	}
 
+	return nil
+}
+
+func (d *FileService) deleteFiles(id string) error {
+	session, err := d.pers.GetSessionByID(id)
+	if err != nil {
+		return err
+	}
+
+	err = d.pers.DeleteFilesByFileID(id)
+	if err != nil {
+		return err
+	}
+	err = d.pers.DeleteFilesBySessionID(session)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func (d *FileService) ValidateCountDownload(id string) error {
@@ -115,7 +132,7 @@ func (d *FileService) ValidateCountDownload(id string) error {
 	}
 
 	if out.CountDownload != nil && *out.CountDownload <= 0 {
-		err := d.pers.File.DeleteFilesByFileID(id)
+		err := d.deleteFiles(id)
 		if err != nil {
 			return err
 		}

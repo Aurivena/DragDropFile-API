@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+type SessionOutput struct {
+	SessionID string `db:"session"`
+}
 type File struct {
 	FileBase64 string `form:"file"`
 	Filename   string `form:"filename"`

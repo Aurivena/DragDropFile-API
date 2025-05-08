@@ -12,7 +12,12 @@ import (
 )
 
 func (a *Action) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
-	if err := a.domains.UpdateCountDownload(count, sessionID); err != nil {
+	files, err := a.domains.File.GetZipMetaBySession(sessionID)
+	if err != nil {
+		logrus.Error(err)
+		return answer.InternalServerError
+	}
+	if err := a.domains.UpdateCountDownload(count, files.Id); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -20,7 +25,12 @@ func (a *Action) UpdateCountDownload(count int, sessionID string) answer.ErrorCo
 	return answer.NoContent
 }
 func (a *Action) UpdateDateDeleted(countDayToDeleted int, sessionID string) answer.ErrorCode {
-	if err := a.domains.UpdateDateDeleted(countDayToDeleted, sessionID); err != nil {
+	files, err := a.domains.File.GetZipMetaBySession(sessionID)
+	if err != nil {
+		logrus.Error(err)
+		return answer.InternalServerError
+	}
+	if err := a.domains.UpdateDateDeleted(countDayToDeleted, files.Id); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -28,7 +38,12 @@ func (a *Action) UpdateDateDeleted(countDayToDeleted int, sessionID string) answ
 	return answer.NoContent
 }
 func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
-	if err := a.domains.UpdatePassword(password, sessionID); err != nil {
+	files, err := a.domains.File.GetZipMetaBySession(sessionID)
+	if err != nil {
+		logrus.Error(err)
+		return answer.InternalServerError
+	}
+	if err := a.domains.UpdatePassword(password, files.Id); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
