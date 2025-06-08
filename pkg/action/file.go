@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"mime/multipart"
+	"time"
 )
 
 const (
@@ -22,12 +23,7 @@ var (
 )
 
 func (a *Action) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
-	files, err := a.domains.File.GetZipMetaBySession(sessionID)
-	if err != nil {
-		logrus.Error(err)
-		return answer.InternalServerError
-	}
-	if err := a.domains.UpdateCountDownload(count, files.Id); err != nil {
+	if err := a.domains.UpdateCountDownload(count, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -48,12 +44,7 @@ func (a *Action) UpdateDateDeleted(countDayToDeleted int, sessionID string) answ
 	return answer.NoContent
 }
 func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
-	files, err := a.domains.File.GetZipMetaBySession(sessionID)
-	if err != nil {
-		logrus.Error(err)
-		return answer.InternalServerError
-	}
-	if err := a.domains.UpdatePassword(password, files.Id); err != nil {
+	if err := a.domains.UpdatePassword(password, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -62,12 +53,7 @@ func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
 }
 
 func (a *Action) UpdateDescription(description, sessionID string) answer.ErrorCode {
-	files, err := a.domains.File.GetZipMetaBySession(sessionID)
-	if err != nil {
-		logrus.Error(err)
-		return answer.InternalServerError
-	}
-	if err := a.domains.UpdateDescription(description, files.Id); err != nil {
+	if err := a.domains.UpdateDescription(description, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -75,7 +61,7 @@ func (a *Action) UpdateDescription(description, sessionID string) answer.ErrorCo
 	return answer.NoContent
 }
 
-func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFileOutput, answer.ErrorCode) {
+func (a *Action) GetFile(id, password string) (*models.GetFileOutput, answer.ErrorCode) {
 	file, err := a.domains.File.GetByID(id)
 	if err != nil {
 		logrus.Error(err)
@@ -84,7 +70,7 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 
 	f := models.FileGet{
 		ID:       id,
-		Password: input.Password,
+		Password: password,
 	}
 
 	err = a.domains.ValidatePassword(&f)
@@ -118,24 +104,17 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 		return nil, answer.InternalServerError
 	}
 
-	desc, err := a.domains.File.GetDataFile(id)
-	if err != nil {
-		logrus.Error(err)
-		if errors.As(err, &ErrorFileDeleted) {
-			return nil, Gone
-		}
-		return nil, answer.InternalServerError
-	}
-
-	out.Description = desc.Description
-
 	return out, answer.OK
 }
 
-func (a *Action) Create(ctx context.Context, sessionID string, file multipart.File, header *multipart.FileHeader) (*models.FilSaveOutput, answer.ErrorCode) {
-	fileData, err := getFileData(file, header)
-	if err != nil {
-		return nil, answer.InternalServerError
+func (a *Action) Create(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*models.FilSaveOutput, answer.ErrorCode) {
+	var allData []models.File
+	for i := range files {
+		fileData, err := getFileData(files[i], headers[i])
+		if err != nil {
+			return nil, answer.InternalServerError
+		}
+		allData = append(allData, *fileData)
 	}
 
 	id, err := domain.GenerateID()
@@ -151,17 +130,7 @@ func (a *Action) Create(ctx context.Context, sessionID string, file multipart.Fi
 		return nil, answer.InternalServerError
 	}
 
-	if filesBase64 != nil {
-		filesBase64 = append(filesBase64, *fileData)
-
-		out, err := a.save(ctx, id, sessionID, filename, filesBase64)
-		if err != nil {
-			return nil, answer.InternalServerError
-		}
-		return out, answer.OK
-	}
-
-	filesBase64 = append(filesBase64, *fileData)
+	filesBase64 = append(filesBase64, allData...)
 
 	out, err := a.save(ctx, id, sessionID, filename, filesBase64)
 	if err != nil {
@@ -174,20 +143,25 @@ func (a *Action) Create(ctx context.Context, sessionID string, file multipart.Fi
 func (a *Action) save(ctx context.Context, id, sessionID, filename string, files []models.File) (*models.FilSaveOutput, error) {
 	var input models.FileSave
 
+	updatedFiles := make([]models.File, 0, len(files))
+
 	for i, val := range files {
 		d, err := domain.DecodeFile(val.FileBase64)
 		if err != nil {
 			return nil, err
 		}
-		fileID := fmt.Sprintf("%s%d", id, i+1)
-		_, err = a.domains.Minio.DownloadMinio(d, sessionID, val.Filename)
+
+		uniqueName := fmt.Sprintf("%d_%s", time.Now().Second(), val.Filename)
+
+		_, err = a.domains.Minio.DownloadMinio(d, sessionID, uniqueName)
 		if err != nil {
 			return nil, err
 		}
 
+		fileID := fmt.Sprintf("%s%d", id, i+1)
 		input = models.FileSave{
 			Id:        fileID,
-			Name:      val.Filename,
+			Name:      uniqueName,
 			SessionID: sessionID,
 			MimeType:  domain.GetMimeType(val.FileBase64),
 		}
@@ -196,21 +170,25 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 		if err != nil {
 			return nil, err
 		}
+
+		val.Filename = uniqueName
+		updatedFiles = append(updatedFiles, val)
 	}
 
-	data, err := a.domains.File.ZipFiles(files, id)
+	data, err := a.domains.File.ZipFiles(updatedFiles, id)
 	if err != nil {
 		return nil, err
 	}
 
-	m, err := a.domains.Minio.DownloadMinio(data, sessionID, filename)
+	zipUniqueName := fmt.Sprintf("%d_%s", time.Now().Hour(), filename)
+	m, err := a.domains.Minio.DownloadMinio(data, sessionID, zipUniqueName)
 	if err != nil {
 		return nil, err
 	}
 
 	input = models.FileSave{
 		Id:        id,
-		Name:      filename,
+		Name:      zipUniqueName,
 		SessionID: sessionID,
 		MimeType:  ".zip",
 	}
@@ -221,14 +199,12 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 	}
 
 	out := models.FilSaveOutput{
-		ID:   id,
-		Size: m.Size,
-
+		ID:    id,
+		Size:  m.Size,
 		Count: len(files),
 	}
 	return &out, nil
 }
-
 func (a *Action) DeleteFile(id string) answer.ErrorCode {
 	err := a.domains.Minio.Delete(id)
 	if err != nil {

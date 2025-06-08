@@ -14,10 +14,10 @@ type File interface {
 	GetZipMetaBySession(sessionID string) (*models.FileOutput, error)
 	DeleteFilesBySessionID(sessionID string) error
 	DeleteFilesByFileID(id string) error
-	UpdateCountDownload(count int, id string) error
+	UpdateCountDownload(count int, session string) error
 	UpdateDateDeleted(dateDeleted time.Time, id string) error
-	UpdatePassword(password string, id string) error
-	UpdateDescription(description string, id string) error
+	UpdatePassword(password string, session string) error
+	UpdateDescription(description string, session string) error
 	GetFilesBySessionNotZip(sessionID string) ([]models.FileOutput, error)
 	GetIdFilesBySession(sessionID string) ([]string, error)
 	GetByID(id string) (*models.FileOutput, error)

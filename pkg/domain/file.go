@@ -25,7 +25,7 @@ func (d *FileService) GetByID(id string) (*models.FileOutput, error) {
 	return d.pers.GetByID(id)
 }
 
-func (d *FileService) UpdateDescription(description string, id string) error {
+func (d *FileService) UpdateDescription(description, id string) error {
 	return d.pers.UpdateDescription(description, id)
 }
 
@@ -66,15 +66,15 @@ func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
 	return d.pers.DeleteFilesBySessionID(sessionID)
 }
 
-func (d *FileService) UpdateCountDownload(count int, id string) error {
-	return d.pers.File.UpdateCountDownload(count, id)
+func (d *FileService) UpdateCountDownload(count int, session string) error {
+	return d.pers.File.UpdateCountDownload(count, session)
 }
-func (d *FileService) UpdateDateDeleted(countDayToDeleted int, id string) error {
+func (d *FileService) UpdateDateDeleted(countDayToDeleted int, session string) error {
 	dateDeleted := time.Now().UTC().Add(time.Hour * 24 * time.Duration(countDayToDeleted))
-	return d.pers.File.UpdateDateDeleted(dateDeleted, id)
+	return d.pers.File.UpdateDateDeleted(dateDeleted, session)
 }
-func (d *FileService) UpdatePassword(password, id string) error {
-	return d.pers.File.UpdatePassword(password, id)
+func (d *FileService) UpdatePassword(password, session string) error {
+	return d.pers.File.UpdatePassword(password, session)
 }
 
 func (d *FileService) ValidatePassword(input *models.FileGet) error {

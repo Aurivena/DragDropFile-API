@@ -3,13 +3,12 @@ package route
 import (
 	"DragDrop-Files/models"
 	"context"
-	"errors"
 	"fmt"
 	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"log"
-	"time"
+	"mime/multipart"
 )
 
 // @Summary      Сохранить файл
@@ -25,19 +24,33 @@ import (
 // @Router       /file/save [post]
 func (r *Route) SaveFile(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
-
-	file, header, err := c.Request.FormFile("file")
-	if err != nil {
-		logrus.WithError(err).Error("failed to get file from request")
+	if sessionID == "" {
+		logrus.Error("missing session ID header")
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
 	}
-	defer file.Close()
 
-	ctx, cancel := context.WithDeadlineCause(c.Request.Context(), time.Now().Add(5*time.Second), errors.New("file creation timeout"))
-	defer cancel()
+	form, err := c.MultipartForm()
+	if err != nil {
+		logrus.WithError(err).Error("failed to parse multipart form")
+		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		return
+	}
 
-	output, processStatus := r.action.Create(ctx, sessionID, file, header)
+	headers := form.File["file"]
+	var files []multipart.File
+
+	for _, header := range headers {
+		f, err := header.Open()
+		if err != nil {
+			logrus.WithError(err).Error("failed to open uploaded file")
+			continue
+		}
+		files = append(files, f)
+		defer f.Close()
+	}
+
+	output, processStatus := r.action.Create(context.Background(), sessionID, files, headers)
 	answer.SendResponseSuccess(c, output, processStatus)
 }
 
@@ -62,6 +75,7 @@ func (r *Route) GetDataFile(c *gin.Context) {
 // @Accept       json
 // @Produce      octet-stream
 // @Param        id path string true "Идентификатор файла"
+// @Param        X-Password header string true "Пароль для файлов"
 // @Success      200 {file} string "Файл успешно получен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      401 {object} string "Неверный пароль"
@@ -70,13 +84,9 @@ func (r *Route) GetDataFile(c *gin.Context) {
 // @Router       /file/:id [get]
 func (r *Route) Get(c *gin.Context) {
 	id := c.Param("id")
-	var input models.FileGetInput
-	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
-		return
-	}
+	password := c.GetHeader("X-Password")
 
-	out, processStatus := r.action.GetFile(id, &input)
+	out, processStatus := r.action.GetFile(id, password)
 	if processStatus != answer.OK {
 		answer.SendResponseSuccess(c, nil, processStatus)
 		return
@@ -98,7 +108,6 @@ func (r *Route) Get(c *gin.Context) {
 		out.File,
 		map[string]string{
 			"Content-Disposition": contentDisposition,
-			"X-File-Description":  out.Description,
 		},
 	)
 }

@@ -23,11 +23,11 @@ type File interface {
 	ValidateCountDownload(id string) error
 	UpdateCountDownload(count int, id string) error
 	UpdateDateDeleted(countDayToDeleted int, id string) error
+	UpdateDescription(description, id string) error
 	UpdatePassword(password, id string) error
 	GetFilesBySession(sessionID string) ([]models.FileOutput, error)
 	GetDataFile(id string) (*models.DataOutput, error)
 	GetByID(id string) (*models.FileOutput, error)
-	UpdateDescription(description string, id string) error
 }
 
 type Domain struct {
