@@ -18,8 +18,8 @@ CREATE TABLE "File_Parameters" (
    count_download int
 );
 
-ALTER TABLE "Session" ADD CONSTRAINT "fk_Session_0" FOREIGN KEY (file_id) REFERENCES "File"(id);
-ALTER TABLE "File_Parameters" ADD CONSTRAINT "fk_File_Parameters_0" FOREIGN KEY (file_id) REFERENCES "File"(id);
+ALTER TABLE "Session" ADD CONSTRAINT "fk_Session_0" FOREIGN KEY (file_id) REFERENCES "File"(id) ON DELETE CASCADE;
+ALTER TABLE "File_Parameters" ADD CONSTRAINT "fk_File_Parameters_0" FOREIGN KEY (file_id) REFERENCES "File"(id) ON DELETE CASCADE;
 
 -- +goose StatementEnd
 
