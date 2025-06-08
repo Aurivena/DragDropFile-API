@@ -12,10 +12,11 @@ CREATE TABLE "Session"(
 );
 
 CREATE TABLE "File_Parameters" (
-   file_id varchar PRIMARY KEY NOT NULL,
-   password varchar,
-   date_deleted date,
-   count_download int
+    file_id varchar PRIMARY KEY NOT NULL,
+    password varchar,
+    date_deleted date,
+    count_download int,
+    description varchar
 );
 
 ALTER TABLE "Session" ADD CONSTRAINT "fk_Session_0" FOREIGN KEY (file_id) REFERENCES "File"(id) ON DELETE CASCADE;

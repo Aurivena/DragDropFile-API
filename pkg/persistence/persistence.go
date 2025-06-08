@@ -17,6 +17,7 @@ type File interface {
 	UpdateCountDownload(count int, id string) error
 	UpdateDateDeleted(dateDeleted time.Time, id string) error
 	UpdatePassword(password string, id string) error
+	UpdateDescription(description string, id string) error
 	GetFilesBySessionNotZip(sessionID string) ([]models.FileOutput, error)
 	GetIdFilesBySession(sessionID string) ([]string, error)
 	GetByID(id string) (*models.FileOutput, error)

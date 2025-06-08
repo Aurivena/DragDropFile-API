@@ -21,6 +21,7 @@ type FileOutput struct {
 	Password      *string   `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
 	CountDownload int       `json:"countDownload" db:"count_download"`
+	Description   string    `json:"description" db:"description"`
 }
 
 type FileSave struct {
@@ -37,20 +38,23 @@ type FilSaveOutput struct {
 }
 
 type GetFileOutput struct {
-	File *minio.Object `json:"file"`
-	Name string        `json:"name"`
+	File        *minio.Object `json:"file"`
+	Name        string        `json:"name"`
+	Description string        `json:"description" db:"description"`
 }
 
 type Data struct {
 	Password      *string    `json:"password" db:"password"`
 	DateDeleted   *time.Time `json:"date_deleted" db:"date_deleted"`
 	CountDownload *int       `json:"count_download" db:"count_download"`
+	Description   string     `json:"description" db:"description"`
 }
 
 type DataOutput struct {
 	Password      bool      `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"date_deleted" db:"date_deleted"`
 	CountDownload int       `json:"count_download" db:"count_download"`
+	Description   string    `json:"description" db:"description"`
 }
 
 type FileGetInput struct {
@@ -66,6 +70,7 @@ type FileUpdate struct {
 	CountDayToDeleted *int    `json:"count_day_to_deleted"`
 	Password          *string `json:"password"`
 	CountDownload     *int    `json:"count_download"`
+	Description       string  `json:"description" db:"description"`
 }
 
 type DayDeletedUpdateInput struct {
@@ -78,4 +83,8 @@ type PasswordUpdateInput struct {
 
 type CountDownloadUpdateInput struct {
 	CountDownload int `json:"count_download"`
+}
+
+type DescriptionUpdateInput struct {
+	Description string `json:"description" db:"description"`
 }

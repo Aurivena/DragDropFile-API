@@ -61,6 +61,20 @@ func (a *Action) UpdatePassword(password, sessionID string) answer.ErrorCode {
 	return answer.NoContent
 }
 
+func (a *Action) UpdateDescription(description, sessionID string) answer.ErrorCode {
+	files, err := a.domains.File.GetZipMetaBySession(sessionID)
+	if err != nil {
+		logrus.Error(err)
+		return answer.InternalServerError
+	}
+	if err := a.domains.UpdateDescription(description, files.Id); err != nil {
+		logrus.Error(err)
+		return answer.InternalServerError
+	}
+
+	return answer.NoContent
+}
+
 func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFileOutput, answer.ErrorCode) {
 	file, err := a.domains.File.GetByID(id)
 	if err != nil {
@@ -103,6 +117,17 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 		logrus.Error(err)
 		return nil, answer.InternalServerError
 	}
+
+	desc, err := a.domains.File.GetDataFile(id)
+	if err != nil {
+		logrus.Error(err)
+		if errors.As(err, &ErrorFileDeleted) {
+			return nil, Gone
+		}
+		return nil, answer.InternalServerError
+	}
+
+	out.Description = desc.Description
 
 	return out, answer.OK
 }

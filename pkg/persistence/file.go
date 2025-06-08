@@ -25,7 +25,7 @@ type FilePersistence struct {
 
 func (p *FilePersistence) GetByID(id string) (*models.FileOutput, error) {
 	var out models.FileOutput
-	err := p.db.Get(&out, `SELECT S.file_id,name,mime_type,session,password,date_deleted,count_download FROM "File"
+	err := p.db.Get(&out, `SELECT S.file_id,name,mime_type,session,password,date_deleted,count_download,description FROM "File"
 			INNER JOIN public."File_Parameters" FP on "File".id = FP.file_id
 			INNER JOIN "Session" S ON S.file_id = "File".id
 			WHERE id = $1`, id)
@@ -65,7 +65,7 @@ func (p *FilePersistence) Create(ctx context.Context, input models.FileSave) err
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO "File_Parameters" (file_id, date_deleted,count_download,password) VALUES ($1,$2,$3,$4)`, input.Id, dateDeleted, countDownload, nil)
+	_, err = tx.ExecContext(ctx, `INSERT INTO "File_Parameters" (file_id, date_deleted,count_download,password,description) VALUES ($1,$2,$3,$4,$5)`, input.Id, dateDeleted, countDownload, nil, "")
 	if err != nil {
 		return err
 	}
@@ -118,6 +118,15 @@ func (p *FilePersistence) UpdateCountDownload(count int, id string) error {
 	}
 	return nil
 }
+
+func (p *FilePersistence) UpdateDescription(description string, id string) error {
+	_, err := p.db.Exec(`UPDATE "File_Parameters" SET description = $1 WHERE file_id = $2`, description, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *FilePersistence) UpdateDateDeleted(dateDeleted time.Time, id string) error {
 	_, err := p.db.Exec(`UPDATE "File_Parameters" SET date_deleted = $1 WHERE file_id = $2`, dateDeleted, id)
 	if err != nil {
@@ -149,7 +158,7 @@ func (p *FilePersistence) GetIdFilesBySession(sessionID string) ([]string, error
 func (p *FilePersistence) GetFilesBySessionNotZip(sessionID string) ([]models.FileOutput, error) {
 	var out []models.FileOutput
 
-	err := p.db.Select(&out, `SELECT F.file_id,name,mime_type,session,password,date_deleted,count_download FROM "Session"
+	err := p.db.Select(&out, `SELECT F.file_id,name,mime_type,session,password,date_deleted,count_download,description FROM "Session"
          INNER JOIN public."File_Parameters" F on F.file_id = "Session".file_id
          INNER JOIN public."File" F2 on F2.id = "Session".file_id
          WHERE session = $1
@@ -164,7 +173,7 @@ func (p *FilePersistence) GetFilesBySessionNotZip(sessionID string) ([]models.Fi
 func (p *FilePersistence) GetDataFile(id string) (*models.DataOutput, error) {
 
 	var out models.DataOutput
-	err := p.db.Get(&out, `SELECT (password IS NOT NULL AND password != '') AS password,date_deleted,count_download FROM "File_Parameters" WHERE file_id =$1`, id)
+	err := p.db.Get(&out, `SELECT (password IS NOT NULL AND password != '') AS password,date_deleted,count_download,description FROM "File_Parameters" WHERE file_id =$1`, id)
 	if err != nil {
 		return nil, err
 	}

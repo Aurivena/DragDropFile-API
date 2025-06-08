@@ -25,6 +25,10 @@ func (d *FileService) GetByID(id string) (*models.FileOutput, error) {
 	return d.pers.GetByID(id)
 }
 
+func (d *FileService) UpdateDescription(description string, id string) error {
+	return d.pers.UpdateDescription(description, id)
+}
+
 func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
 	out, err := d.pers.GetDataFile(id)
 	if err != nil {
@@ -37,6 +41,7 @@ func (d *FileService) GetDataFile(id string) (*models.DataOutput, error) {
 		Password:      out.Password,
 		DateDeleted:   out.DateDeleted,
 		CountDownload: out.CountDownload,
+		Description:   out.Description,
 	}
 	return &data, nil
 }

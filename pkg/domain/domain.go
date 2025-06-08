@@ -27,6 +27,7 @@ type File interface {
 	GetFilesBySession(sessionID string) ([]models.FileOutput, error)
 	GetDataFile(id string) (*models.DataOutput, error)
 	GetByID(id string) (*models.FileOutput, error)
+	UpdateDescription(description string, id string) error
 }
 
 type Domain struct {

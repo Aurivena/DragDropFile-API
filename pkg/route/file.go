@@ -62,12 +62,12 @@ func (r *Route) GetDataFile(c *gin.Context) {
 // @Accept       json
 // @Produce      octet-stream
 // @Param        id path string true "Идентификатор файла"
-// @Success      200 {file} models. "Файл успешно получен"
+// @Success      200 {file} string "Файл успешно получен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      401 {object} string "Неверный пароль"
 // @Failure      410 {object} string "Хранение файла закончено. Файл удален"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
-// @Router       /file/:id [post]
+// @Router       /file/:id [get]
 func (r *Route) Get(c *gin.Context) {
 	id := c.Param("id")
 	var input models.FileGetInput
@@ -98,6 +98,7 @@ func (r *Route) Get(c *gin.Context) {
 		out.File,
 		map[string]string{
 			"Content-Disposition": contentDisposition,
+			"X-File-Description":  out.Description,
 		},
 	)
 }
@@ -171,5 +172,29 @@ func (r *Route) UpdateCountDownload(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := r.action.UpdateCountDownload(input.CountDownload, sessionID)
+	answer.SendResponseSuccess(c, nil, processStatus)
+}
+
+// @Summary      Обновить описание файла
+// @Description  Устанавливает новое описание для файла.
+// @Tags         File
+// @Accept       json
+// @Produce      json
+// @Param        input body models.DescriptionUpdateInput true "Данные для ввода"
+// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Success      204 {object} string "NoContent" "Выходные данные"
+// @Failure      400 {object} string "Некорректные данные"
+// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Router       /file/update/description [put]
+func (r *Route) UpdateDescription(c *gin.Context) {
+	var input *models.DescriptionUpdateInput
+	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
+		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		return
+	}
+
+	sessionID := c.GetHeader("X-Session-ID")
+
+	processStatus := r.action.UpdateDescription(input.Description, sessionID)
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
