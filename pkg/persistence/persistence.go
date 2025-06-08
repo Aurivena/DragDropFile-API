@@ -2,13 +2,14 @@ package persistence
 
 import (
 	"DragDrop-Files/models"
+	"context"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type File interface {
-	Create(input models.FileSave) error
+	Create(ctx context.Context, input models.FileSave) error
 	Delete(id string) error
 	GetZipMetaBySession(sessionID string) (*models.FileOutput, error)
 	DeleteFilesBySessionID(sessionID string) error

@@ -28,7 +28,3 @@ type MinioConfig struct {
 	SSL             bool   `json:"minio_use_ssl"  binding:"required"`
 	MinioBucketName string `json:"minio_bucket_name" binding:"required"`
 }
-
-type Environment struct {
-	IsReadConfig bool `env:"IS_READ_CONFIG"`
-}

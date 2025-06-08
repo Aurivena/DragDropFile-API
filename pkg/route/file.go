@@ -2,11 +2,14 @@ package route
 
 import (
 	"DragDrop-Files/models"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"log"
+	"time"
 )
 
 // @Summary      Сохранить файл
@@ -31,7 +34,10 @@ func (r *Route) SaveFile(c *gin.Context) {
 	}
 	defer file.Close()
 
-	output, processStatus := r.action.Create(sessionID, file, header)
+	ctx, cancel := context.WithDeadlineCause(c.Request.Context(), time.Now().Add(5*time.Second), errors.New("file creation timeout"))
+	defer cancel()
+
+	output, processStatus := r.action.Create(ctx, sessionID, file, header)
 	answer.SendResponseSuccess(c, output, processStatus)
 }
 

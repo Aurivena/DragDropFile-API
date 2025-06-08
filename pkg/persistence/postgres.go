@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/pressly/goose/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,19 +19,22 @@ type PostgresDBConfig struct {
 }
 
 const (
-	dbDriverName = "pgx"
+	dbDriverName  = "pgx"
+	migrationsDir = "migrations"
 )
 
-func NewPostgresDB(config *PostgresDBConfig, serverMode string) (*sqlx.DB, error) {
+func NewPostgresDB(config *PostgresDBConfig) (*sqlx.DB, error) {
 	db, err := getDBConnection(config)
 
-	if err == nil {
-		return db, nil
-	} else {
-		fmt.Println(err.Error())
+	if err = goose.SetDialect(dbDriverName); err != nil {
+		return nil, err
 	}
 
-	return nil, err
+	if err = goose.Up(db.DB, migrationsDir); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
 func getDBConnection(config *PostgresDBConfig) (*sqlx.DB, error) {

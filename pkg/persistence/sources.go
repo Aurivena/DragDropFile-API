@@ -19,7 +19,7 @@ func NewBusinessDatabase(config *models.ConfigService) *sqlx.DB {
 		Password: config.BusinessDB.Password,
 		DBName:   config.BusinessDB.DBName,
 		SSLMode:  config.BusinessDB.SSLMode,
-	}, config.Server.ServerMode)
+	})
 	if err != nil {
 		logrus.Fatalf("failed to initialize business db: %s", err.Error())
 	}

@@ -1,10 +1,5 @@
 ### Для запуска потребуется
 
-#### .env
-```.env
-IS_READ_CONFIG=true
-```
-
 #### config.json
 ```json
 {

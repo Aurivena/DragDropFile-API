@@ -3,6 +3,7 @@ package action
 import (
 	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/domain"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -106,7 +107,7 @@ func (a *Action) GetFile(id string, input *models.FileGetInput) (*models.GetFile
 	return out, answer.OK
 }
 
-func (a *Action) Create(sessionID string, file multipart.File, header *multipart.FileHeader) (*models.FilSaveOutput, answer.ErrorCode) {
+func (a *Action) Create(ctx context.Context, sessionID string, file multipart.File, header *multipart.FileHeader) (*models.FilSaveOutput, answer.ErrorCode) {
 	fileData, err := getFileData(file, header)
 	if err != nil {
 		return nil, answer.InternalServerError
@@ -128,7 +129,7 @@ func (a *Action) Create(sessionID string, file multipart.File, header *multipart
 	if filesBase64 != nil {
 		filesBase64 = append(filesBase64, *fileData)
 
-		out, err := a.save(id, sessionID, filename, filesBase64)
+		out, err := a.save(ctx, id, sessionID, filename, filesBase64)
 		if err != nil {
 			return nil, answer.InternalServerError
 		}
@@ -137,7 +138,7 @@ func (a *Action) Create(sessionID string, file multipart.File, header *multipart
 
 	filesBase64 = append(filesBase64, *fileData)
 
-	out, err := a.save(id, sessionID, filename, filesBase64)
+	out, err := a.save(ctx, id, sessionID, filename, filesBase64)
 	if err != nil {
 		return nil, answer.InternalServerError
 	}
@@ -145,7 +146,7 @@ func (a *Action) Create(sessionID string, file multipart.File, header *multipart
 	return out, answer.OK
 }
 
-func (a *Action) save(id, sessionID, filename string, files []models.File) (*models.FilSaveOutput, error) {
+func (a *Action) save(ctx context.Context, id, sessionID, filename string, files []models.File) (*models.FilSaveOutput, error) {
 	var input models.FileSave
 
 	for i, val := range files {
@@ -166,7 +167,7 @@ func (a *Action) save(id, sessionID, filename string, files []models.File) (*mod
 			MimeType:  domain.GetMimeType(val.FileBase64),
 		}
 
-		err = a.domains.File.Create(input)
+		err = a.domains.File.Create(ctx, input)
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +190,7 @@ func (a *Action) save(id, sessionID, filename string, files []models.File) (*mod
 		MimeType:  ".zip",
 	}
 
-	err = a.domains.File.Create(input)
+	err = a.domains.File.Create(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -222,30 +223,6 @@ func (a *Action) GetDataFile(id string) (*models.DataOutput, answer.ErrorCode) {
 		return nil, answer.InternalServerError
 	}
 	return out, answer.OK
-}
-
-func (a *Action) downloadFile(id, sessionID string, files []models.File) error {
-	for _, val := range files {
-		d, err := domain.DecodeFile(val.FileBase64)
-
-		_, err = a.domains.Minio.DownloadMinio(d, sessionID, val.Filename)
-		if err != nil {
-			return err
-		}
-
-		v := models.FileSave{
-			Id:        id,
-			Name:      val.Filename,
-			SessionID: sessionID,
-			MimeType:  domain.GetMimeType(val.FileBase64),
-		}
-
-		err = a.domains.File.Create(v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {

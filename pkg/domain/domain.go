@@ -3,6 +3,7 @@ package domain
 import (
 	"DragDrop-Files/models"
 	"DragDrop-Files/pkg/persistence"
+	"context"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -14,10 +15,8 @@ type Minio interface {
 
 type File interface {
 	GetZipMetaBySession(sessionID string) (*models.FileOutput, error)
-	GetIdFileBySession(sessionID string) ([]string, error)
-	Create(input models.FileSave) error
+	Create(ctx context.Context, input models.FileSave) error
 	ZipFiles(files []models.File, id string) ([]byte, error)
-	Delete(id string) error
 	DeleteFilesBySessionID(sessionID string) error
 	ValidatePassword(input *models.FileGet) error
 	ValidateDateDeleted(id string) error

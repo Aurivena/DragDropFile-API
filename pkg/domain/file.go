@@ -5,6 +5,7 @@ import (
 	"DragDrop-Files/pkg/persistence"
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -44,52 +45,20 @@ func NewFileService(pers *persistence.Persistence) *FileService {
 	return &FileService{pers: pers}
 }
 
-func (d *FileService) Create(input models.FileSave) error {
-	return d.pers.Create(input)
-}
-
-func (d *FileService) GetIdFileBySession(sessionID string) ([]string, error) {
-	return d.pers.GetIdFilesBySession(sessionID)
+func (d *FileService) Create(ctx context.Context, input models.FileSave) error {
+	return d.pers.Create(ctx, input)
 }
 
 func (d *FileService) GetFilesBySession(sessionID string) ([]models.FileOutput, error) {
 	return d.pers.GetFilesBySessionNotZip(sessionID)
 }
 
-func (d *FileService) GetNameByID(id string) (string, error) {
-	out, err := d.pers.GetByID(id)
-	if err != nil {
-		return "", err
-	}
-	return out.Name, nil
-}
-
 func (d *FileService) GetZipMetaBySession(sessionID string) (*models.FileOutput, error) {
 	return d.pers.GetZipMetaBySession(sessionID)
 }
 
-func (d *FileService) Delete(id string) error {
-	return d.pers.Delete(id)
-}
-
-func (d *FileService) GetMimeTypeByID(id string) (string, error) {
-	out, err := d.pers.GetByID(id)
-	if err != nil {
-		return "", err
-	}
-	return out.MimeType, nil
-}
-
 func (d *FileService) DeleteFilesBySessionID(sessionID string) error {
 	return d.pers.DeleteFilesBySessionID(sessionID)
-}
-
-func (d *FileService) GetSessionByID(id string) (string, error) {
-	out, err := d.pers.GetByID(id)
-	if err != nil {
-		return "", err
-	}
-	return out.Session, nil
 }
 
 func (d *FileService) UpdateCountDownload(count int, id string) error {

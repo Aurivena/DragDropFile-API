@@ -14,11 +14,11 @@ type File struct {
 }
 
 type FileOutput struct {
-	Id            string    `json:"id"`
-	Name          string    `json:"name"`
+	Id            string    `json:"file_id" db:"file_id"`
+	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`
-	Session       string    `json:"session"`
-	Password      *string   `json:"password"`
+	Session       string    `json:"session" db:"session"`
+	Password      *string   `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
 	CountDownload int       `json:"countDownload" db:"count_download"`
 }
