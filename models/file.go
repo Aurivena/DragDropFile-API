@@ -14,7 +14,8 @@ type File struct {
 }
 
 type FileOutput struct {
-	Id            string    `json:"file_id" db:"file_id"`
+	ID            int       `json:"id" db:"id"`
+	FileID        string    `json:"file_id" db:"file_id"`
 	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`
 	Session       string    `json:"session" db:"session"`
@@ -87,4 +88,9 @@ type CountDownloadUpdateInput struct {
 
 type DescriptionUpdateInput struct {
 	Description string `json:"description" db:"description"`
+}
+
+type FileInfo struct {
+	ID     int    `json:"id"`
+	FileID string `json:"fileID"`
 }

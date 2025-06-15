@@ -21,6 +21,10 @@ type FileService struct {
 	pers *persistence.Persistence
 }
 
+func (d *FileService) Delete(id int) error {
+	return d.pers.Delete(id)
+}
+
 func (d *FileService) GetByID(id string) (*models.FileOutput, error) {
 	return d.pers.GetByID(id)
 }
@@ -125,7 +129,7 @@ func (d *FileService) ValidateCountDownload(id string) error {
 
 	if out.CountDownload > 0 {
 		c := out.CountDownload - 1
-		err := d.pers.File.UpdateCountDownload(c, id)
+		err := d.pers.File.UpdateCountDownload(c, out.Session)
 		if err != nil {
 			return err
 		}
@@ -228,10 +232,6 @@ func (d *FileService) deleteFiles(id string) error {
 		return err
 	}
 
-	err = d.pers.DeleteFilesByFileID(id)
-	if err != nil {
-		return err
-	}
 	err = d.pers.DeleteFilesBySessionID(out.Session)
 	if err != nil {
 		return err

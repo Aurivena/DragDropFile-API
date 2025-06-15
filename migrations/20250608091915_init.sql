@@ -2,25 +2,26 @@
 -- +goose StatementBegin
 
 CREATE TABLE "File" (
-                        id varchar PRIMARY KEY,
-                        name varchar NOT NULL,
-                        mime_type varchar NOT NULL
+   id serial PRIMARY KEY ,
+   file_id varchar,
+   name varchar NOT NULL,
+   mime_type varchar NOT NULL
 );
 
 CREATE TABLE "Session" (
-                           session varchar NOT NULL,
-                           file_id varchar NOT NULL,
-                           PRIMARY KEY (session, file_id)
+  session varchar NOT NULL,
+  file_id int NOT NULL,
+  PRIMARY KEY (session, file_id)
 );
 
 CREATE TABLE "File_Parameters" (
-                                   session varchar NOT NULL,
-                                   file_id varchar NOT NULL,
-                                   password varchar,
-                                   date_deleted date,
-                                   count_download int,
-                                   description varchar,
-                                   PRIMARY KEY (session, file_id)
+  session varchar NOT NULL,
+  file_id int NOT NULL,
+  password varchar,
+  date_deleted date,
+  count_download int,
+  description varchar,
+  PRIMARY KEY (session, file_id)
 );
 
 ALTER TABLE "Session"

@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	Gone = 410
+	Gone          = 410
+	prefixZipFile = "dg-"
 )
 
 var (
@@ -36,7 +37,7 @@ func (a *Action) UpdateDateDeleted(countDayToDeleted int, sessionID string) answ
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
-	if err := a.domains.UpdateDateDeleted(countDayToDeleted, files.Id); err != nil {
+	if err := a.domains.UpdateDateDeleted(countDayToDeleted, files.FileID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -62,14 +63,15 @@ func (a *Action) UpdateDescription(description, sessionID string) answer.ErrorCo
 }
 
 func (a *Action) GetFile(id, password string) (*models.GetFileOutput, answer.ErrorCode) {
-	file, err := a.domains.File.GetByID(id)
+	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
+	file, err := a.domains.File.GetByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
 		return nil, answer.BadRequest
 	}
 
 	f := models.FileGet{
-		ID:       id,
+		ID:       zipFileID,
 		Password: password,
 	}
 
@@ -117,18 +119,17 @@ func (a *Action) Create(ctx context.Context, sessionID string, files []multipart
 		allData = append(allData, *fileData)
 	}
 
-	id, err := domain.GenerateID()
+	id, filesBase64, err := a.checkFilesID(sessionID)
 	if err != nil {
-		logrus.Error(err)
+		return nil, answer.InternalServerError
+	}
+
+	id, err = a.setfileID(id)
+	if err != nil {
 		return nil, answer.InternalServerError
 	}
 
 	filename := fmt.Sprintf("%s%s", id, ".zip")
-
-	filesBase64, err := a.checkFilesID(sessionID)
-	if err != nil {
-		return nil, answer.InternalServerError
-	}
 
 	filesBase64 = append(filesBase64, allData...)
 
@@ -140,12 +141,25 @@ func (a *Action) Create(ctx context.Context, sessionID string, files []multipart
 	return out, answer.OK
 }
 
+func (a *Action) setfileID(id string) (string, error) {
+	if id != "" {
+		return id, nil
+	}
+
+	newID, err := domain.GenerateID()
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	return newID, nil
+}
+
 func (a *Action) save(ctx context.Context, id, sessionID, filename string, files []models.File) (*models.FilSaveOutput, error) {
 	var input models.FileSave
 
 	updatedFiles := make([]models.File, 0, len(files))
 
-	for i, val := range files {
+	for _, val := range files {
 		d, err := domain.DecodeFile(val.FileBase64)
 		if err != nil {
 			return nil, err
@@ -158,9 +172,8 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 			return nil, err
 		}
 
-		fileID := fmt.Sprintf("%s%d", id, i+1)
 		input = models.FileSave{
-			Id:        fileID,
+			Id:        id,
 			Name:      uniqueName,
 			SessionID: sessionID,
 			MimeType:  domain.GetMimeType(val.FileBase64),
@@ -174,8 +187,8 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 		val.Filename = uniqueName
 		updatedFiles = append(updatedFiles, val)
 	}
-
-	data, err := a.domains.File.ZipFiles(updatedFiles, id)
+	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
+	data, err := a.domains.File.ZipFiles(updatedFiles, fileIDZip)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +200,7 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 	}
 
 	input = models.FileSave{
-		Id:        id,
+		Id:        fileIDZip,
 		Name:      zipUniqueName,
 		SessionID: sessionID,
 		MimeType:  ".zip",
@@ -205,17 +218,9 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 	}
 	return &out, nil
 }
-func (a *Action) DeleteFile(id string) answer.ErrorCode {
-	err := a.domains.Minio.Delete(id)
-	if err != nil {
-		logrus.Error(err)
-		return answer.InternalServerError
-	}
-
-	return answer.NoContent
-}
 
 func (a *Action) GetDataFile(id string) (*models.DataOutput, answer.ErrorCode) {
+	id = fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.domains.GetDataFile(id)
 	if err != nil {
 		if errors.As(err, &ErrorFileDeleted) {
@@ -226,31 +231,30 @@ func (a *Action) GetDataFile(id string) (*models.DataOutput, answer.ErrorCode) {
 	return out, answer.OK
 }
 
-func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
+func (a *Action) checkFilesID(sessionID string) (string, []models.File, error) {
 	var filesBase64 []models.File
 	var file models.File
 
 	files, err := a.domains.File.GetFilesBySession(sessionID)
 	if err != nil {
 		logrus.Error(err)
-		return nil, err
+		return "", nil, err
 	}
 
 	if files == nil {
-		return nil, nil
+		return "", nil, nil
 	}
 
 	for _, val := range files {
-
 		path := fmt.Sprintf("%s/%s", sessionID, val.Name)
 		out, err := a.domains.Minio.GetByFilename(path)
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 
 		content, err := io.ReadAll(out.File)
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 
 		encoded := base64.StdEncoding.EncodeToString(content)
@@ -264,15 +268,15 @@ func (a *Action) checkFilesID(sessionID string) ([]models.File, error) {
 
 		err = a.domains.Minio.Delete(val.Name)
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
 	if err = a.domains.DeleteFilesBySessionID(sessionID); err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	return filesBase64, nil
+	return files[0].FileID, filesBase64, nil
 }
 
 func getFileData(file multipart.File, header *multipart.FileHeader) (*models.File, error) {

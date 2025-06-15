@@ -10,7 +10,7 @@ import (
 
 type File interface {
 	Create(ctx context.Context, input models.FileSave) error
-	Delete(id string) error
+	Delete(id int) error
 	GetZipMetaBySession(sessionID string) (*models.FileOutput, error)
 	DeleteFilesBySessionID(sessionID string) error
 	DeleteFilesByFileID(id string) error
