@@ -32,7 +32,7 @@ type FileSave struct {
 	MimeType  string
 }
 
-type FilSaveOutput struct {
+type FileSaveOutput struct {
 	Size  int64  `json:"size"`
 	Count int    `json:"count"`
 	ID    string `json:"id"`

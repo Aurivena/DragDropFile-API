@@ -18,7 +18,7 @@ import (
 // @Produce      json
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
 // @Param        file formData file true "Файл для загрузки"
-// @Success      200 {object} models.FilSaveOutput "Файл успешно сохранен"
+// @Success      200 {object} models.FileSaveOutput "Файл успешно сохранен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
@@ -50,7 +50,7 @@ func (r *Route) SaveFile(c *gin.Context) {
 		defer f.Close()
 	}
 
-	output, processStatus := r.action.Create(context.Background(), sessionID, files, headers)
+	output, processStatus := r.action.SaveFiles(context.Background(), sessionID, files, headers)
 	answer.SendResponseSuccess(c, output, processStatus)
 }
 
