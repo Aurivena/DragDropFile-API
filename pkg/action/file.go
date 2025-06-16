@@ -8,15 +8,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Aurivena/answer"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"io"
 	"mime/multipart"
+	"sync"
 	"time"
 )
 
 const (
-	Gone          = 410
-	prefixZipFile = "dg-"
+	Gone             = 410
+	prefixZipFile    = "dg-"
+	lenCodeForID     = 12
+	lenCodeForPrefix = 6
 )
 
 var (
@@ -113,16 +117,26 @@ func (a *Action) SaveFiles(ctx context.Context, sessionID string, files []multip
 	if sessionID == "" || len(files) == 0 || len(files) != len(headers) {
 		return nil, answer.BadRequest
 	}
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 
 	var allData []models.File
 	for i, file := range files {
-		fileData, err := getFileData(file, headers[i])
-		if err != nil {
-			logrus.WithError(err).Errorf("failed to process file %d", i)
-			return nil, answer.BadRequest
-		}
-		allData = append(allData, *fileData)
+		wg.Add(1)
+		go func(f multipart.File, headers []*multipart.FileHeader, index int) {
+			defer wg.Done()
+			fileData, err := getFileData(f, headers[index])
+			if err != nil {
+				logrus.WithError(err).Errorf("failed to process file %d", i)
+				return
+			}
+			mu.Lock()
+			allData = append(allData, *fileData)
+			mu.Unlock()
+		}(file, headers, i)
 	}
+
+	wg.Wait()
 
 	id, existingFiles, err := a.checkFilesID(sessionID)
 	if err != nil {
@@ -130,7 +144,6 @@ func (a *Action) SaveFiles(ctx context.Context, sessionID string, files []multip
 		return nil, answer.InternalServerError
 	}
 
-	// Фильтруем дубликаты по имени файла
 	newFiles := filterDuplicates(allData, existingFiles)
 	if len(newFiles) == 0 {
 		return nil, answer.BadRequest
@@ -159,7 +172,7 @@ func (a *Action) setFileID(id string) (string, error) {
 		return id, nil
 	}
 
-	newID, err := domain.GenerateID()
+	newID, err := domain.GenerateID(lenCodeForID)
 	if err != nil {
 		logrus.Error(err)
 		return "", err
@@ -169,39 +182,57 @@ func (a *Action) setFileID(id string) (string, error) {
 
 func (a *Action) save(ctx context.Context, id, sessionID, filename string, files []models.File) (*models.FileSaveOutput, error) {
 	var input models.FileSave
+
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 	updatedFiles := make([]models.File, 0, len(files))
 
-	for _, file := range files {
-		data, err := domain.DecodeFile(file.FileBase64)
-		if err != nil {
-			logrus.WithError(err).Error("failed to decode file")
-			return nil, err
-		}
-
-		// Используем наносекунды для уникальности имени
-		uniqueName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
-
-		_, err = a.domains.Minio.DownloadMinio(data, sessionID, uniqueName)
-		if err != nil {
-			logrus.WithError(err).Error("failed to upload to Minio")
-			return nil, err
-		}
-
-		input = models.FileSave{
-			Id:        id,
-			Name:      uniqueName,
-			SessionID: sessionID,
-			MimeType:  domain.GetMimeType(file.FileBase64),
-		}
-
-		if err := a.domains.File.Create(ctx, input); err != nil {
-			logrus.WithError(err).Error("failed to save file metadata")
-			return nil, err
-		}
-
-		file.Filename = uniqueName
-		updatedFiles = append(updatedFiles, file)
+	prefix, err := domain.GenerateID(lenCodeForPrefix)
+	if err != nil {
+		return nil, err
 	}
+
+	prefix += fmt.Sprintf("-%d", time.Now().Day())
+
+	for _, file := range files {
+		wg.Add(1)
+
+		go func(f models.File, prefix string) {
+			defer wg.Done()
+
+			data, err := domain.DecodeFile(f.FileBase64)
+			if err != nil {
+				logrus.WithError(err).Error("failed to decode file")
+				return
+			}
+
+			uniqueName := fmt.Sprintf("%s_%s", prefix, f.Filename)
+
+			_, err = a.domains.Minio.DownloadMinio(data, sessionID, uniqueName)
+			if err != nil {
+				logrus.WithError(err).Error("failed to upload to Minio")
+				return
+			}
+
+			input = models.FileSave{
+				Id:        id,
+				Name:      uniqueName,
+				SessionID: sessionID,
+				MimeType:  domain.GetMimeType(f.FileBase64),
+			}
+
+			if err := a.domains.File.Create(ctx, input); err != nil {
+				logrus.WithError(err).Error("failed to save file metadata")
+				return
+			}
+
+			mu.Lock()
+			f.Filename = uniqueName
+			updatedFiles = append(updatedFiles, f)
+			mu.Unlock()
+		}(file, prefix)
+	}
+	wg.Wait()
 
 	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipData, err := a.domains.File.ZipFiles(updatedFiles, fileIDZip)
@@ -210,7 +241,7 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 		return nil, err
 	}
 
-	zipUniqueName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), filename)
+	zipUniqueName := fmt.Sprintf("%s_%s", uuid.NewString(), filename)
 	meta, err := a.domains.Minio.DownloadMinio(zipData, sessionID, zipUniqueName)
 	if err != nil {
 		logrus.WithError(err).Error("failed to upload ZIP to Minio")
@@ -224,7 +255,7 @@ func (a *Action) save(ctx context.Context, id, sessionID, filename string, files
 		MimeType:  "zip",
 	}
 
-	if err := a.domains.File.Create(ctx, input); err != nil {
+	if err = a.domains.File.Create(ctx, input); err != nil {
 		logrus.WithError(err).Error("failed to save ZIP metadata")
 		return nil, err
 	}

@@ -177,8 +177,7 @@ func (d *FileService) ZipFiles(files []models.File, id string) ([]byte, error) {
 
 	return buff.Bytes(), nil
 }
-func GenerateID() (string, error) {
-	lenCode := 12
+func GenerateID(lenCode int) (string, error) {
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	code := make([]byte, lenCode)
 	newInt := big.NewInt(int64(len(letters)))
