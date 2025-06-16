@@ -17,7 +17,7 @@ import (
 // @Accept       multipart/form-data
 // @Produce      json
 // @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
-// @Param        file formData file true "Файл для загрузки"
+// @Param        files formData files true "Файл для загрузки"
 // @Success      200 {object} models.FileSaveOutput "Файл успешно сохранен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
@@ -37,7 +37,7 @@ func (r *Route) SaveFile(c *gin.Context) {
 		return
 	}
 
-	headers := form.File["file"]
+	headers := form.File["files"]
 	var files []multipart.File
 
 	for _, header := range headers {
