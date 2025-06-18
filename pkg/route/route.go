@@ -27,7 +27,7 @@ func (r *Route) InitHTTPRoutes(config *models.ServerConfig) *gin.Engine {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT"},
-		AllowHeaders:     []string{"X-Session-ID", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"X-Session-ID", "X-Password", "Content-Type", "Authorization"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 	}))
