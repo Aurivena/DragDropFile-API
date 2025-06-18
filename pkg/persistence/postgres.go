@@ -27,7 +27,8 @@ func NewPostgresDB(config *PostgresDBConfig) (*sqlx.DB, error) {
 	db, err := getDBConnection(config)
 
 	if err = goose.SetDialect(dbDriverName); err != nil {
-		return nil, err
+		logrus.Errorf("Failed to set goose dialect: %v", err)
+		return nil, fmt.Errorf("failed to set goose dialect: %w", err)
 	}
 
 	if err = goose.Up(db.DB, migrationsDir); err != nil {
@@ -41,8 +42,14 @@ func getDBConnection(config *PostgresDBConfig) (*sqlx.DB, error) {
 	db, err := sqlx.Connect(dbDriverName, getConnectionString(config))
 	if err != nil {
 		logrus.Error(err.Error())
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
 	db.SetMaxOpenConns(60)
 	return db, nil
 }
