@@ -1,5 +1,7 @@
 ### Для запуска потребуется
 
+Соаздем config/config.json
+
 #### config.json
 ```json
 {
