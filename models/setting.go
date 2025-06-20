@@ -1,15 +1,21 @@
 package models
 
 type ConfigService struct {
-	Server     ServerConfig     `json:"server" binding:"required"`
-	BusinessDB BusinessDBConfig `json:"business-database" binding:"required"`
-	Minio      MinioConfig      `json:"minio" binding:"required"`
+	Server       ServerConfig       `json:"server" binding:"required"`
+	BusinessDB   BusinessDBConfig   `json:"business-database" binding:"required"`
+	Minio        MinioConfig        `json:"minio" binding:"required"`
+	Certificates CertificatesConfig `json:"certificates" binding:"required"`
 }
 
 type ServerConfig struct {
 	Port       string `json:"server_port" binding:"required"`
 	ServerMode string `json:"server_mode" binding:"required"`
 	Domain     string `json:"server_domain" binding:"required"`
+}
+
+type CertificatesConfig struct {
+	CertificatesPath string `json:"certificatesPath"`
+	KeyPath          string `json:"keyPath"`
 }
 
 type BusinessDBConfig struct {

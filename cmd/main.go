@@ -44,16 +44,18 @@ func main() {
 	persistences := persistence.NewPersistence(&sources)
 	domains := domain.NewDomain(persistences, initialization.ConfigService, minioClient)
 	actions := action.NewAction(domains)
+
 	routes := route.NewRoute(actions)
-	go run(serverInstance, routes, &initialization.ConfigService.Server)
+	certificates := initialization.ConfigService.Certificates
+	go run(serverInstance, routes, &initialization.ConfigService.Server, certificates.CertificatesPath, certificates.KeyPath)
 	stop()
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *models.ServerConfig) {
+func run(server server.Server, routes *route.Route, config *models.ServerConfig, certFile, keyFile string) {
 	ginEgine := routes.InitHTTPRoutes(config)
 
-	if err := server.Run(config.Port, ginEgine); err != nil {
+	if err := server.Run(config.Port, ginEgine, certFile, keyFile); err != nil {
 		if err.Error() != "http: Server closed" {
 			logrus.Fatalf("error occurred while running http server: %s", nil, err.Error())
 		}

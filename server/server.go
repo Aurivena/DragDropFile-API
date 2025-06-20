@@ -13,10 +13,9 @@ type Server struct {
 	httpServer *http.Server
 }
 
-const RELEASE = "release"
 const DEVELOPMENT = "development"
 
-func (s *Server) Run(port string, routes http.Handler) error {
+func (s *Server) Run(port string, routes http.Handler, certFile, keyFile string) error {
 	s.httpServer = &http.Server{
 		Addr:           ":" + port,
 		Handler:        routes,
@@ -25,7 +24,7 @@ func (s *Server) Run(port string, routes http.Handler) error {
 		WriteTimeout:   60 * time.Second,
 	}
 	logrus.Info("server started successfully")
-	return s.httpServer.ListenAndServe()
+	return s.httpServer.ListenAndServeTLS(certFile, keyFile)
 }
 
 func (s *Server) Stop(ctx context.Context, postgres *sqlx.DB) {

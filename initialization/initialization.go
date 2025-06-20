@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	configFilePath = "/configs/config.json"
+	configFilePath = "configs/config.json"
 )
 
 var (
