@@ -48,11 +48,6 @@ func main() {
 	routes := route.NewRoute(actions)
 	certificates := initialization.ConfigService.Certificates
 
-	logrus.Info(certificates)
-
-	logrus.Info(certificates.CertificatesPath)
-	logrus.Info(certificates.KeyPath)
-
 	go run(serverInstance, routes, &initialization.ConfigService.Server, certificates)
 	stop()
 	serverInstance.Stop(context.Background(), businessDatabase)
