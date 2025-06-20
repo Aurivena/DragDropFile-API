@@ -46,15 +46,22 @@ func main() {
 	actions := action.NewAction(domains)
 
 	routes := route.NewRoute(actions)
-	go run(serverInstance, routes, &initialization.ConfigService.Server)
+	certificates := initialization.ConfigService.Certificates
+
+	logrus.Info(certificates)
+
+	logrus.Info(certificates.CertificatesPath)
+	logrus.Info(certificates.KeyPath)
+
+	go run(serverInstance, routes, &initialization.ConfigService.Server, certificates)
 	stop()
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *models.ServerConfig) {
+func run(server server.Server, routes *route.Route, config *models.ServerConfig, certificates models.CertificatesConfig) {
 	ginEgine := routes.InitHTTPRoutes(config)
 
-	if err := server.Run(config.Port, ginEgine); err != nil {
+	if err := server.Run(config.Port, ginEgine, certificates); err != nil {
 		if err.Error() != "http: Server closed" {
 			logrus.Fatalf("error occurred while running http server: %s", nil, err.Error())
 		}

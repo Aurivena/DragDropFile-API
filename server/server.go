@@ -1,6 +1,7 @@
 package server
 
 import (
+	"DragDrop-Files/models"
 	"context"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ type Server struct {
 
 const DEVELOPMENT = "development"
 
-func (s *Server) Run(port string, routes http.Handler) error {
+func (s *Server) Run(port string, routes http.Handler, certificates models.CertificatesConfig) error {
 	s.httpServer = &http.Server{
 		Addr:           ":" + port,
 		Handler:        routes,
@@ -24,7 +25,7 @@ func (s *Server) Run(port string, routes http.Handler) error {
 		WriteTimeout:   60 * time.Second,
 	}
 	logrus.Info("server started successfully")
-	return s.httpServer.ListenAndServe()
+	return s.httpServer.ListenAndServeTLS(certificates.CertificatesPath, certificates.KeyPath)
 }
 
 func (s *Server) Stop(ctx context.Context, postgres *sqlx.DB) {
