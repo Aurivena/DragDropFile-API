@@ -302,10 +302,10 @@ func (a *Action) checkFilesID(sessionID string) (string, []models.File, error) {
 		content, err := io.ReadAll(out.File)
 		if err != nil {
 			logrus.WithError(err).Errorf("failed to read file %s", path)
-			_ = out.File.Close() // Закрываем файл
+			_ = out.File.Close()
 			return "", nil, err
 		}
-		_ = out.File.Close() // Закрываем файл
+		_ = out.File.Close()
 
 		encoded := base64.StdEncoding.EncodeToString(content)
 		fileBase64 := fmt.Sprintf("data:%s;base64,%s", val.MimeType, encoded)
@@ -316,13 +316,13 @@ func (a *Action) checkFilesID(sessionID string) (string, []models.File, error) {
 		}
 		filesBase64 = append(filesBase64, file)
 
-		if err := a.domains.Minio.Delete(val.Name); err != nil {
+		if err = a.domains.Minio.Delete(val.Name); err != nil {
 			logrus.WithError(err).Errorf("failed to delete file %s from Minio", val.Name)
 			return "", nil, err
 		}
 	}
 
-	if err := a.domains.DeleteFilesBySessionID(sessionID); err != nil {
+	if err = a.domains.DeleteFilesBySessionID(sessionID); err != nil {
 		logrus.WithError(err).Error("failed to delete files by session ID")
 		return "", nil, err
 	}

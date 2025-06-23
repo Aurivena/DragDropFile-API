@@ -4,7 +4,6 @@ import (
 	"DragDrop-Files/models"
 	"bytes"
 	"context"
-
 	"fmt"
 	"github.com/minio/minio-go/v7"
 
@@ -56,7 +55,7 @@ func (s *MinioService) GetByFilename(path string) (*models.GetFileOutput, error)
 
 	log.Printf("Поток для объекта '%s' из бакета '%s' успешно получен.", path, s.cfg.Minio.MinioBucketName)
 	out.File = objectReader
-	out.Name = path
+	out.Name = path[6:]
 	return &out, nil
 }
 
