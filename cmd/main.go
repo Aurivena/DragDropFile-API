@@ -2,11 +2,11 @@ package main
 
 import (
 	"DragDrop-Files/initialization"
+	"DragDrop-Files/internal/action"
+	"DragDrop-Files/internal/domain"
+	"DragDrop-Files/internal/persistence"
+	"DragDrop-Files/internal/route"
 	"DragDrop-Files/models"
-	"DragDrop-Files/pkg/action"
-	"DragDrop-Files/pkg/domain"
-	"DragDrop-Files/pkg/persistence"
-	"DragDrop-Files/pkg/route"
 	"DragDrop-Files/server"
 	"context"
 	"os"

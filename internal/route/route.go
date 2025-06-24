@@ -1,8 +1,8 @@
 package route
 
 import (
+	"DragDrop-Files/internal/action"
 	"DragDrop-Files/models"
-	"DragDrop-Files/pkg/action"
 	"DragDrop-Files/server"
 	"github.com/gin-contrib/cors"
 	"strings"

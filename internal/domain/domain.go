@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"DragDrop-Files/internal/persistence"
 	"DragDrop-Files/models"
-	"DragDrop-Files/pkg/persistence"
 	"context"
 	"github.com/minio/minio-go/v7"
 )
