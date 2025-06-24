@@ -16,18 +16,19 @@ import (
 )
 
 func (a *Action) checkValidDownloadFile(data []byte, f *models.File, sessionID, id, prefix string, ctx context.Context) error {
-	_, err := a.downloadFile(data, f.FileBase64, f.Filename, sessionID, id, ctx)
-	if err != nil {
-		if errors.As(err, &ErrorDuplicateFile) {
-			f.Filename = fmt.Sprintf("%s-%s", prefix, f.Filename)
-			_, err := a.downloadFile(data, f.FileBase64, f.Filename, sessionID, id, ctx)
-			if err != nil {
-				logrus.Error(err)
-				return err
-			}
-		} else {
+	_, err := a.downloadFile(data, domain.GetMimeType(f.FileBase64), f.Filename, sessionID, id, ctx)
+	if errors.As(err, &ErrorDuplicateFile) {
+		f.Filename = fmt.Sprintf("dublicate-%s-%s", prefix, f.Filename)
+		_, err = a.downloadFile(data, domain.GetMimeType(f.FileBase64), f.Filename, sessionID, id, ctx)
+		if err != nil {
+			logrus.Error(err)
 			return err
 		}
+	}
+
+	if err != nil {
+		logrus.Error(err)
+		return err
 	}
 	return nil
 }
@@ -51,7 +52,7 @@ func (a *Action) downloadZipFile(id, sessionID string, files []models.File, ctx 
 func (a *Action) downloadFile(data []byte, mimeType, filename, sessionID, id string, ctx context.Context) (*minio.UploadInfo, error) {
 	meta, err := a.domains.Minio.DownloadMinio(data, sessionID, filename)
 	if err != nil {
-		logrus.Error("failed to upload to Minio")
+		logrus.Error(err)
 		return nil, err
 	}
 
@@ -87,16 +88,11 @@ func getFileData(file multipart.File, header *multipart.FileHeader) (*models.Fil
 	}, nil
 }
 
-func (a *Action) saveFilesToStorage(ctx context.Context, id, sessionID string, files []models.File) (*models.FileSaveOutput, error) {
-	if len(files) == 0 {
-		return nil, fmt.Errorf("no files provided")
-	}
-
+func (a *Action) saveFilesToStorage(ctx context.Context, id, sessionID string, newFiles, oldFiles []models.File) (*models.FileSaveOutput, error) {
 	var (
 		wg             sync.WaitGroup
 		mu             sync.Mutex
 		processedFiles []models.File
-		errors         []error
 	)
 
 	prefix, err := domain.GenerateID(lenCodeForPrefix)
@@ -105,23 +101,17 @@ func (a *Action) saveFilesToStorage(ctx context.Context, id, sessionID string, f
 		return nil, fmt.Errorf("failed to generate prefix: %w", err)
 	}
 
-	for _, file := range files {
+	for _, file := range newFiles {
 		wg.Add(1)
 		go func(f models.File) {
 			defer wg.Done()
 
 			data, err := domain.DecodeFile(f.FileBase64)
 			if err != nil {
-				mu.Lock()
-				errors = append(errors, fmt.Errorf("failed to decode file %s: %w", f.Filename, err))
-				mu.Unlock()
 				return
 			}
 
 			if err = a.checkValidDownloadFile(data, &f, sessionID, id, prefix, ctx); err != nil {
-				mu.Lock()
-				errors = append(errors, fmt.Errorf("failed to validate file %s: %w", f.Filename, err))
-				mu.Unlock()
 				return
 			}
 
@@ -132,13 +122,7 @@ func (a *Action) saveFilesToStorage(ctx context.Context, id, sessionID string, f
 	}
 	wg.Wait()
 
-	if len(errors) > 0 {
-		return nil, fmt.Errorf("failed to process %d file(s): %v", len(errors), errors)
-	}
-
-	if len(processedFiles) == 0 {
-		return nil, fmt.Errorf("no files were processed successfully")
-	}
+	processedFiles = append(processedFiles, oldFiles...)
 
 	meta, err := a.downloadZipFile(id, sessionID, processedFiles, ctx)
 	if err != nil {

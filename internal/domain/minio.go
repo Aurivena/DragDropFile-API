@@ -58,13 +58,13 @@ func (s *MinioService) GetByFilename(path string) (*models.GetFileOutput, error)
 	return &out, nil
 }
 
-func (s *MinioService) DownloadMinio(data []byte, sessionID, name string) (*minio.UploadInfo, error) {
+func (s *MinioService) DownloadMinio(data []byte, sessionID, filename string) (*minio.UploadInfo, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("пустой файл")
 	}
 
 	ctx := context.Background()
-	path := fmt.Sprintf("%s/%s", sessionID, name)
+	path := fmt.Sprintf("%s/%s", sessionID, filename)
 
 	_, err := s.minioClient.StatObject(ctx, s.cfg.Minio.MinioBucketName, path, minio.StatObjectOptions{})
 	if err == nil {

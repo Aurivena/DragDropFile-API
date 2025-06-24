@@ -117,7 +117,7 @@ func (a *Action) SaveFiles(ctx context.Context, sessionID string, files []multip
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
 
-	var allData []models.File
+	var newFiles []models.File
 	for i, file := range files {
 		wg.Add(1)
 		go func(f multipart.File, headers []*multipart.FileHeader, index int) {
@@ -128,7 +128,7 @@ func (a *Action) SaveFiles(ctx context.Context, sessionID string, files []multip
 				return
 			}
 			mu.Lock()
-			allData = append(allData, *fileData)
+			newFiles = append(newFiles, *fileData)
 			mu.Unlock()
 		}(file, headers, i)
 	}
@@ -147,9 +147,7 @@ func (a *Action) SaveFiles(ctx context.Context, sessionID string, files []multip
 		return nil, answer.InternalServerError
 	}
 
-	combinedFiles := append(existingFiles, allData...)
-
-	out, err := a.saveFilesToStorage(ctx, id, sessionID, combinedFiles)
+	out, err := a.saveFilesToStorage(ctx, id, sessionID, newFiles, existingFiles)
 	if err != nil {
 		logrus.Error("failed to save files")
 		return nil, answer.InternalServerError
