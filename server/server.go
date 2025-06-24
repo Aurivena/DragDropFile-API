@@ -25,7 +25,7 @@ func (s *Server) Run(port string, routes http.Handler, certificates models.Certi
 		WriteTimeout:   60 * time.Second,
 	}
 	logrus.Info("server started successfully")
-	return s.httpServer.ListenAndServeTLS(certificates.CertificatesPath, certificates.KeyPath)
+	return s.httpServer.ListenAndServe()
 }
 
 func (s *Server) Stop(ctx context.Context, postgres *sqlx.DB) {

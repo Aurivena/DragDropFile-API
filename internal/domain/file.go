@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"DragDrop-Files/internal/persistence"
 	"DragDrop-Files/models"
-	"DragDrop-Files/pkg/persistence"
 	"archive/zip"
 	"bytes"
 	"context"
@@ -209,22 +209,22 @@ func GetMimeType(fileBase64 string) string {
 	return mimeType
 }
 func DecodeFile(fileBase64 string) ([]byte, error) {
-	base64Data := fileBase64
-
-	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
-		parts := strings.SplitN(fileBase64, ";base64,", 2)
-		base64Data = parts[1]
+	if !strings.HasPrefix(fileBase64, "data:") {
+		return nil, fmt.Errorf("invalid base64 format: missing data prefix")
 	}
 
-	data, err := base64.StdEncoding.DecodeString(base64Data)
+	parts := strings.SplitN(fileBase64, ";base64,", 2)
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid base64 format: missing base64 separator")
+	}
+
+	data, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
-		log.Printf("Ошибка декодирования Base64 для строки '%s': %v", fileBase64[:min(len(fileBase64), 50)], err)
-		return nil, fmt.Errorf("некорректные Base64 данные: %w", err)
+		return nil, fmt.Errorf("failed to decode base64: %w", err)
 	}
 
 	return data, nil
 }
-
 func (d *FileService) deleteFiles(id string) error {
 	out, err := d.pers.GetByID(id)
 	if err != nil {

@@ -1,6 +1,6 @@
 package action
 
-import "DragDrop-Files/pkg/domain"
+import "DragDrop-Files/internal/domain"
 
 type Action struct {
 	domains *domain.Domain

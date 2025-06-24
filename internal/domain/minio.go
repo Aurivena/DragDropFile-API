@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/minio/minio-go/v7"
-
 	"log"
 	"net/http"
 )
@@ -55,23 +54,32 @@ func (s *MinioService) GetByFilename(path string) (*models.GetFileOutput, error)
 
 	log.Printf("Поток для объекта '%s' из бакета '%s' успешно получен.", path, s.cfg.Minio.MinioBucketName)
 	out.File = objectReader
-	out.Name = path[6:]
+	out.Name = path
 	return &out, nil
 }
 
 func (s *MinioService) DownloadMinio(data []byte, sessionID, name string) (*minio.UploadInfo, error) {
-	fileSize := int64(len(data))
-	var contentType string
-	if fileSize > 0 {
-		contentType = http.DetectContentType(data)
-	} else {
-		contentType = "application/octet-stream"
+	if len(data) == 0 {
+		return nil, fmt.Errorf("пустой файл")
 	}
-	reader := bytes.NewReader(data)
 
+	ctx := context.Background()
 	path := fmt.Sprintf("%s/%s", sessionID, name)
 
-	uploadInfo, err := s.minioClient.PutObject(context.Background(), s.cfg.Minio.MinioBucketName, path, reader, fileSize, minio.PutObjectOptions{
+	_, err := s.minioClient.StatObject(ctx, s.cfg.Minio.MinioBucketName, path, minio.StatObjectOptions{})
+	if err == nil {
+		return nil, fmt.Errorf("file duplicate")
+	}
+	if minio.ToErrorResponse(err).Code != "NoSuchKey" {
+		return nil, fmt.Errorf("ошибка при проверке существования файла: %w", err)
+	}
+
+	contentType := http.DetectContentType(data)
+
+	reader := bytes.NewReader(data)
+	fileSize := int64(len(data))
+
+	uploadInfo, err := s.minioClient.PutObject(ctx, s.cfg.Minio.MinioBucketName, path, reader, fileSize, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
