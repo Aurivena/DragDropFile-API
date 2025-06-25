@@ -1,6 +1,6 @@
 ### Для запуска потребуется
 
-Соаздем config/config.json
+Создаем config/config.json
 
 #### config.json
 ```json
