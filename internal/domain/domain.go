@@ -16,7 +16,6 @@ type Minio interface {
 type File interface {
 	GetZipMetaBySession(sessionID string) (*models.FileOutput, error)
 	Create(ctx context.Context, input models.FileSave) error
-	ZipFiles(files []models.File, id string) ([]byte, error)
 	DeleteFilesBySessionID(sessionID string) error
 	ValidatePassword(input *models.FileGet) error
 	ValidateDateDeleted(id string) error
@@ -29,6 +28,7 @@ type File interface {
 	GetDataFile(id string) (*models.DataOutput, error)
 	GetByID(id string) (*models.FileOutput, error)
 	Delete(id int) error
+	DeleteFiles(id string) error
 }
 
 type Domain struct {

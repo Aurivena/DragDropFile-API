@@ -3,18 +3,12 @@ package domain
 import (
 	"DragDrop-Files/internal/persistence"
 	"DragDrop-Files/models"
-	"archive/zip"
-	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"io"
 	"log"
 	"math/big"
-	"strings"
 	"time"
 )
 
@@ -106,9 +100,6 @@ func (d *FileService) ValidateDateDeleted(id string) error {
 
 	now := time.Now().UTC()
 	if !now.Before(out.DateDeleted.UTC()) {
-		if err := d.deleteFiles(id); err != nil {
-			return err
-		}
 		return errors.New("file deleted")
 	}
 
@@ -121,10 +112,6 @@ func (d *FileService) ValidateCountDownload(id string) error {
 		return err
 	}
 	if out.CountDownload == 0 {
-		err := d.deleteFiles(id)
-		if err != nil {
-			return err
-		}
 		return errors.New("file deleted")
 	}
 
@@ -138,46 +125,6 @@ func (d *FileService) ValidateCountDownload(id string) error {
 	return nil
 }
 
-func (d *FileService) ZipFiles(files []models.File, id string) ([]byte, error) {
-	var buff bytes.Buffer
-	zipW := zip.NewWriter(&buff)
-
-	for i, data := range files {
-		fileBytes, err := DecodeFile(data.FileBase64)
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при обработке файла %s: %w", id, err)
-		}
-
-		if len(fileBytes) == 0 {
-			log.Printf("[zipFiles] Пустой файл %d. Пропускаем.", i)
-			continue
-		}
-		header := &zip.FileHeader{
-			Name:   data.Filename,
-			Method: zip.Deflate,
-		}
-
-		fileInZip, err := zipW.CreateHeader(header)
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при создании файла %s в zip-архиве: %w", header.Name, err)
-		}
-
-		_, err = io.Copy(fileInZip, bytes.NewReader(fileBytes))
-		if err != nil {
-			_ = zipW.Close()
-			return nil, fmt.Errorf("ошибка при записи содержимого файла %d в zip-архив: %w", header.Name, err)
-		}
-	}
-
-	err := zipW.Close()
-	if err != nil {
-		return nil, fmt.Errorf("ошибка при закрытии zip-архива: %w", err)
-	}
-
-	return buff.Bytes(), nil
-}
 func GenerateID(lenCode int) (string, error) {
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	code := make([]byte, lenCode)
@@ -193,43 +140,8 @@ func GenerateID(lenCode int) (string, error) {
 
 	return string(code), nil
 }
-func GetMimeType(fileBase64 string) string {
-	base64Data := fileBase64
-	var mimeType string
 
-	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
-		parts := strings.SplitN(fileBase64, ";base64,", 2)
-		if len(parts) == 2 {
-			mimePart := parts[0]
-			if strings.HasPrefix(mimePart, "data:") {
-				mimeType = mimePart[len("data:"):]
-			}
-		}
-	}
-
-	return mimeType
-}
-func DecodeFile(fileBase64 string) ([]byte, error) {
-	if !strings.HasPrefix(fileBase64, "data:") {
-		logrus.Error("invalid base64 format: missing data prefix")
-		return nil, fmt.Errorf("invalid base64 format: missing data prefix")
-	}
-
-	parts := strings.SplitN(fileBase64, ";base64,", 2)
-	if len(parts) != 2 {
-		logrus.Error("invalid base64 format: missing base64 separator")
-		return nil, fmt.Errorf("invalid base64 format: missing base64 separator")
-	}
-
-	data, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		logrus.Error("failed to decode base64: %w", err)
-		return nil, fmt.Errorf("failed to decode base64: %w", err)
-	}
-
-	return data, nil
-}
-func (d *FileService) deleteFiles(id string) error {
+func (d *FileService) DeleteFiles(id string) error {
 	out, err := d.pers.GetByID(id)
 	if err != nil {
 		return err
