@@ -2,7 +2,7 @@ package minio
 
 import (
 	"DragDrop-Files/internal/domain/entity"
-	minio2 "DragDrop-Files/internal/domain/interfaces/s3/minio"
+	minioS3 "DragDrop-Files/internal/domain/interfaces/s3/minio"
 	"DragDrop-Files/internal/infrastructure/minio/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
@@ -20,9 +20,9 @@ func NewMinioStorage(cfg entity.MinioConfig) *minio.Client {
 }
 
 type Minio struct {
-	minio2.Get
-	minio2.Save
-	minio2.Delete
+	minioS3.Get
+	minioS3.Save
+	minioS3.Delete
 }
 
 type Sources struct {
