@@ -2,11 +2,7 @@ package main
 
 import (
 	"DragDrop-Files/initialization"
-	"DragDrop-Files/internal/action"
-	"DragDrop-Files/internal/domain"
-	"DragDrop-Files/internal/persistence"
-	"DragDrop-Files/internal/route"
-	"DragDrop-Files/models"
+	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/server"
 	"context"
 	"os"
@@ -35,28 +31,17 @@ func init() {
 // @BasePath  		/api/
 func main() {
 	var serverInstance server.Server
-
-	businessDatabase := persistence.NewBusinessDatabase(initialization.ConfigService)
-	minioClient := persistence.NewMinioStorage(initialization.ConfigService.Minio)
-	sources := persistence.Sources{
-		BusinessDB: businessDatabase,
-	}
-	persistences := persistence.NewPersistence(&sources)
-	domains := domain.NewDomain(persistences, initialization.ConfigService, minioClient)
-	actions := action.NewAction(domains)
-
-	routes := route.NewRoute(actions)
-	certificates := initialization.ConfigService.Certificates
-
-	go run(serverInstance, routes, &initialization.ConfigService.Server, certificates)
+	routes, businessDatabase := initialization.InitLayers()
+	go run(serverInstance, routes, &initialization.ConfigService.Server)
 	stop()
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *models.ServerConfig, certificates models.CertificatesConfig) {
-	ginEgine := routes.InitHTTPRoutes(config)
+func run(server server.Server, routes *route.Route, config *entity.ServerConfig) {
+	ginEngine := routes.InitHTTPRoutes(config)
+	certificates := initialization.ConfigService.Certificates
 
-	if err := server.Run(config.Port, ginEgine, certificates); err != nil {
+	if err := server.Run(config.Port, ginEngine, certificates); err != nil {
 		if err.Error() != "http: Server closed" {
 			logrus.Fatalf("error occurred while running http server: %s", nil, err.Error())
 		}

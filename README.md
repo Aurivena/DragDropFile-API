@@ -1,8 +1,16 @@
-### Для запуска потребуется
+## Для запуска потребуется
 
-Создаем config/config.json
-
-#### config.json
+```bash
+    yay -S nodejs
+    yay -S npm
+```
+#### Установка зависимостей
+```bash
+    go install github.com/swaggo/swag/cmd/swag@latest
+    go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+---
+#### Создаем config/config.json
 ```json
 {
   "server": {
@@ -20,10 +28,10 @@
   },
   "minio": {
     "endpoint":"localhost:9000",
-    "minio_root_user":"answer-minio-user",
-    "minio_root_password":"answer-minio-password",
+    "minio_root_user":"answer-s3-user",
+    "minio_root_password":"answer-s3-password",
     "minio_use_ssl": false,
-    "minio_bucket_name":"answer-minio-bucket"
+    "minio_bucket_name":"answer-s3-bucket"
   },
   "certificates": {
     "certificatesPath":"" ,
@@ -31,7 +39,8 @@
   }
 }
 ```
+---
 ### Для получения документации
-```
-./swagger_docs.sh
+```bash
+    make swagger
 ```
