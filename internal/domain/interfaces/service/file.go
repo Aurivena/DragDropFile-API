@@ -11,5 +11,5 @@ type Validate interface {
 }
 
 type Save interface {
-	FilesToStorage(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error)
+	Execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error)
 }

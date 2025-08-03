@@ -40,7 +40,7 @@ func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.
 		return nil, answer.InternalServerError
 	}
 
-	out, err := a.srv.Save.FilesToStorage(ctx, id, sessionID, newFiles, existingFiles)
+	out, err := a.srv.Save.Execute(ctx, id, sessionID, newFiles, existingFiles)
 	if err != nil {
 		logrus.Error("failed to save files")
 		return nil, answer.InternalServerError

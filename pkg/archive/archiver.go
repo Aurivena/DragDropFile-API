@@ -1,8 +1,8 @@
 package archive
 
 import (
-	"DragDrop-Files/models"
-	"DragDrop-Files/pkg/file"
+	"DragDrop-Files/internal/domain/entity"
+	"DragDrop-Files/pkg/fileops"
 	"archive/zip"
 	"bytes"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func ZipFiles(files []models.File, id string) ([]byte, error) {
+func ZipFiles(files []entity.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 

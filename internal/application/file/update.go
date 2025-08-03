@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (a *File) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
+func (a *File) CountDownload(count int, sessionID string) answer.ErrorCode {
 	if err := a.post.FileUpdate.CountDownload(count, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
@@ -14,7 +14,7 @@ func (a *File) UpdateCountDownload(count int, sessionID string) answer.ErrorCode
 
 	return answer.NoContent
 }
-func (a *File) UpdateDateDeleted(countDayToDeleted int, sessionID string) answer.ErrorCode {
+func (a *File) DateDeleted(countDayToDeleted int, sessionID string) answer.ErrorCode {
 	files, err := a.post.FileGet.ZipMetaBySession(sessionID)
 	if err != nil {
 		logrus.Error(err)
@@ -28,7 +28,7 @@ func (a *File) UpdateDateDeleted(countDayToDeleted int, sessionID string) answer
 
 	return answer.NoContent
 }
-func (a *File) UpdatePassword(password, sessionID string) answer.ErrorCode {
+func (a *File) Password(password, sessionID string) answer.ErrorCode {
 	if err := a.post.FileUpdate.Password(password, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
@@ -37,7 +37,7 @@ func (a *File) UpdatePassword(password, sessionID string) answer.ErrorCode {
 	return answer.NoContent
 }
 
-func (a *File) UpdateDescription(description, sessionID string) answer.ErrorCode {
+func (a *File) Description(description, sessionID string) answer.ErrorCode {
 	if err := a.post.FileUpdate.Description(description, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError

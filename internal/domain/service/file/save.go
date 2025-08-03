@@ -18,7 +18,7 @@ const (
 	prefixZipFile    = "dg-"
 )
 
-func (s *File) SaveFilesToStorage(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error) {
+func (s *File) Execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error) {
 	var (
 		wg             sync.WaitGroup
 		mu             sync.Mutex

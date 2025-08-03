@@ -16,6 +16,8 @@ type Application struct {
 
 func New(post *postgres.Repository, mi *minio.Minio, srv *service.Service) *Application {
 	return &Application{
-		FileSave: file.New(post, mi, srv),
+		FileSave:   file.New(post, mi, srv),
+		FileGet:    file.New(post, mi, srv),
+		FileUpdate: file.New(post, mi, srv),
 	}
 }

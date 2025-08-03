@@ -3,7 +3,7 @@ package entity
 type ConfigService struct {
 	Server       ServerConfig       `json:"server" binding:"required"`
 	BusinessDB   BusinessDBConfig   `json:"business-database" binding:"required"`
-	Minio        MinioConfig        `json:"s3" binding:"required"`
+	Minio        MinioConfig        `json:"minio" binding:"required"`
 	Certificates CertificatesConfig `json:"certificates" binding:"required"`
 }
 

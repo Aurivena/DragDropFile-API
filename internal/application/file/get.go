@@ -10,7 +10,7 @@ import (
 
 var errFileDeleted = errors.New("file deleted")
 
-func (a *File) GetFile(id, password string) (*entity.GetFileOutput, answer.ErrorCode) {
+func (a *File) File(id, password string) (*entity.GetFileOutput, answer.ErrorCode) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
 	file, err := a.post.FileGet.ByID(zipFileID)
 	if err != nil {
@@ -35,7 +35,7 @@ func (a *File) GetFile(id, password string) (*entity.GetFileOutput, answer.Error
 	return out, answer.OK
 }
 
-func (a *File) GetDataFile(id string) (*entity.DataOutput, answer.ErrorCode) {
+func (a *File) Data(id string) (*entity.DataOutput, answer.ErrorCode) {
 	id = fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.post.FileGet.DataFile(id)
 	if err != nil {
