@@ -4,26 +4,15 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"context"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"time"
 )
-
-type Save struct {
-	db *sqlx.DB
-}
-
-func NewSave(db *sqlx.DB) *Save {
-	return &Save{
-		db: db,
-	}
-}
 
 var (
 	dateDeleted   = time.Now().AddDate(1, 0, 0).UTC()
 	countDownload = 365
 )
 
-func (r *Save) File(ctx context.Context, input entity.FileSave) error {
+func (r *File) Execute(ctx context.Context, input entity.FileSave) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

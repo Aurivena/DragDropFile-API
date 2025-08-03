@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ import (
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
-func (r *Route) SaveFile(c *gin.Context) {
+func (h *Handler) Execute(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
@@ -46,6 +47,6 @@ func (r *Route) SaveFile(c *gin.Context) {
 		defer f.Close()
 	}
 
-	output, processStatus := r.action.SaveFiles(context.Background(), sessionID, files, headers)
+	output, processStatus := h.application.Execute(context.Background(), sessionID, files, headers)
 	answer.SendResponseSuccess(c, output, processStatus)
 }

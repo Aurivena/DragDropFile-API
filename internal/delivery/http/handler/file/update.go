@@ -1,6 +1,7 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain/entity"
 	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +17,8 @@ import (
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/deleted [put]
-func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
-	var input *models.DayDeletedUpdateInput
+func (h *Handler) CountDayToDeleted(c *gin.Context) {
+	var input *entity.DayDeletedUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -25,7 +26,7 @@ func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdateDateDeleted(input.CountDayToDeleted, sessionID)
+	processStatus := h.application.FileUpdate.DateDeleted(input.CountDayToDeleted, sessionID)
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
 
@@ -40,8 +41,8 @@ func (r *Route) UpdateCountDayToDeleted(c *gin.Context) {
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/password [put]
-func (r *Route) UpdatePassword(c *gin.Context) {
-	var input *models.PasswordUpdateInput
+func (h *Handler) Password(c *gin.Context) {
+	var input *entity.PasswordUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -49,7 +50,7 @@ func (r *Route) UpdatePassword(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdatePassword(input.Password, sessionID)
+	processStatus := h.application.FileUpdate.Password(input.Password, sessionID)
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
 
@@ -64,8 +65,8 @@ func (r *Route) UpdatePassword(c *gin.Context) {
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/count-download [put]
-func (r *Route) UpdateCountDownload(c *gin.Context) {
-	var input *models.CountDownloadUpdateInput
+func (h *Handler) CountDownload(c *gin.Context) {
+	var input *entity.CountDownloadUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -73,7 +74,7 @@ func (r *Route) UpdateCountDownload(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdateCountDownload(input.CountDownload, sessionID)
+	processStatus := h.application.FileUpdate.CountDownload(input.CountDownload, sessionID)
 	answer.SendResponseSuccess(c, nil, processStatus)
 }
 
@@ -88,8 +89,8 @@ func (r *Route) UpdateCountDownload(c *gin.Context) {
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/description [put]
-func (r *Route) UpdateDescription(c *gin.Context) {
-	var input *models.DescriptionUpdateInput
+func (h *Handler) Description(c *gin.Context) {
+	var input *entity.DescriptionUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		answer.SendResponseSuccess(c, nil, answer.BadRequest)
 		return
@@ -97,6 +98,6 @@ func (r *Route) UpdateDescription(c *gin.Context) {
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := r.action.UpdateDescription(input.Description, sessionID)
+	processStatus := h.application.FileUpdate.Description(input.Description, sessionID)
 	answer.SendResponseSuccess(c, nil, processStatus)
 }

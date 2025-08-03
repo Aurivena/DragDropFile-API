@@ -29,7 +29,7 @@ type Sources struct {
 	BusinessDB *sqlx.DB
 }
 
-func NewMinio(cfg *entity.MinioConfig, minioClient *minio.Client) *Minio {
+func New(cfg *entity.MinioConfig, minioClient *minio.Client) *Minio {
 	return &Minio{
 		Get:    file.NewGet(minioClient, cfg),
 		Save:   file.NewSave(minioClient, cfg),

@@ -1,24 +1,24 @@
 package initialization
 
 import (
-	"DragDrop-Files/internal/infrastructure/repository"
+	"DragDrop-Files/internal/application"
+	"DragDrop-Files/internal/delivery/http"
+	"DragDrop-Files/internal/domain/service"
+	"DragDrop-Files/internal/infrastructure/minio"
 	"DragDrop-Files/internal/infrastructure/repository/postgres"
-	"DragDrop-Files/trash/action"
-	"DragDrop-Files/trash/route"
-	"DragDrop-Files/trash/service"
 	"github.com/jmoiron/sqlx"
 )
 
-func InitLayers() (routes *route.Route, businessDatabase *sqlx.DB) {
+func InitLayers() (delivery *http.Http, businessDatabase *sqlx.DB) {
 	businessDatabase = postgres.NewBusinessDatabase(ConfigService)
-	minioClient := repository.NewMinioStorage(ConfigService.Minio)
+	minioClient := minio.NewMinioStorage(ConfigService.Minio)
 	sources := postgres.Sources{
 		BusinessDB: businessDatabase,
 	}
-	repositories := postgres.NewRepository(&sources)
-	domains := service.NewDomain(repositories, ConfigService, minioClient)
-	actions := action.NewAction(domains)
-
-	routes = route.NewRoute(actions)
-	return routes, businessDatabase
+	repositories := postgres.New(&sources)
+	minioStorage := minio.New(&ConfigService.Minio, minioClient)
+	srv := service.New(repositories, minioStorage)
+	application := application.New(repositories, minioStorage, srv)
+	delivery = http.NewHttp(application)
+	return delivery, businessDatabase
 }

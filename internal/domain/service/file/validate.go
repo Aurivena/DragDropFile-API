@@ -18,7 +18,7 @@ func (s *File) File(zipFileID, id, password string) error {
 		Password: password,
 	}
 
-	file, err := s.repo.Get.ByID(id)
+	file, err := s.repo.FileGet.ByID(id)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (s *File) File(zipFileID, id, password string) error {
 }
 
 func (s *File) CheckFilesID(sessionID string) (string, []entity.File, error) {
-	files, err := s.repo.Get.FilesBySessionNotZip(sessionID)
+	files, err := s.repo.FileGet.FilesBySessionNotZip(sessionID)
 	if err != nil {
 		logrus.Error("failed to g files by session")
 		return "", nil, err
@@ -71,7 +71,7 @@ func (s *File) CheckFilesID(sessionID string) (string, []entity.File, error) {
 		}
 	}
 
-	if err = s.repo.Delete.FilesBySessionID(sessionID); err != nil {
+	if err = s.repo.FileDelete.FilesBySessionID(sessionID); err != nil {
 		logrus.Error("failed to delete files by session ID")
 		return "", nil, err
 	}
@@ -108,7 +108,7 @@ func (s *File) countDownload(file *entity.FileOutput) error {
 
 	if file.CountDownload > 0 {
 		c := file.CountDownload - 1
-		err := s.repo.Update.CountDownload(c, file.Session)
+		err := s.repo.FileUpdate.CountDownload(c, file.Session)
 		if err != nil {
 			return err
 		}

@@ -4,20 +4,9 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"database/sql"
 	"errors"
-	"github.com/jmoiron/sqlx"
 )
 
-type Get struct {
-	db *sqlx.DB
-}
-
-func NewGet(db *sqlx.DB) *Get {
-	return &Get{
-		db: db,
-	}
-}
-
-func (r *Get) ByID(id string) (*entity.FileOutput, error) {
+func (r *File) ByID(id string) (*entity.FileOutput, error) {
 	var out entity.FileOutput
 	err := r.db.Get(&out, `SELECT S.file_id,name,mime_type,FP.session,password,date_deleted,count_download,description FROM "File"
 			INNER JOIN public."File_Parameters" FP on "File".id = FP.file_id
@@ -30,7 +19,7 @@ func (r *Get) ByID(id string) (*entity.FileOutput, error) {
 	return &out, err
 }
 
-func (r *Get) ZipMetaBySession(sessionID string) (*entity.FileOutput, error) {
+func (r *File) ZipMetaBySession(sessionID string) (*entity.FileOutput, error) {
 	var out entity.FileOutput
 	err := r.db.Get(&out, `SELECT "File".id,"File".file_id, name FROM "File" 
                 INNER JOIN "Session" ON "Session".file_id = "File".id
@@ -44,7 +33,7 @@ func (r *Get) ZipMetaBySession(sessionID string) (*entity.FileOutput, error) {
 	return &out, nil
 }
 
-func (r *Get) IdFilesBySession(sessionID string) ([]string, error) {
+func (r *File) IdFilesBySession(sessionID string) ([]string, error) {
 	var out []string
 
 	err := r.db.Select(&out, `SELECT F.file_id FROM "Session"
@@ -57,7 +46,7 @@ func (r *Get) IdFilesBySession(sessionID string) ([]string, error) {
 	return out, nil
 }
 
-func (r *Get) FilesBySessionNotZip(sessionID string) ([]entity.FileOutput, error) {
+func (r *File) FilesBySessionNotZip(sessionID string) ([]entity.FileOutput, error) {
 	var out []entity.FileOutput
 
 	err := r.db.Select(&out, `SELECT F.id, F.file_id,name,mime_type,FP.session,password,date_deleted,count_download,description FROM "Session"
@@ -72,7 +61,7 @@ func (r *Get) FilesBySessionNotZip(sessionID string) ([]entity.FileOutput, error
 	return out, nil
 }
 
-func (r *Get) DataFile(id string) (*entity.DataOutput, error) {
+func (r *File) DataFile(id string) (*entity.DataOutput, error) {
 	var out entity.DataOutput
 
 	err := r.db.Get(&out, `SELECT (password IS NOT NULL AND password != '') AS password,date_deleted,count_download,description

@@ -15,10 +15,10 @@ import (
 // @Success      200 {object} entity.DataOutput "Файл успешно сохранен"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id/data [get]
-func (r *Route) GetDataFile(c *gin.Context) {
+func (h *Handler) DataFile(c *gin.Context) {
 	id := c.Param("id")
 
-	output, processStatus := r.action.GetDataFile(id)
+	output, processStatus := h.application.FileGet.Data(id)
 	answer.SendResponseSuccess(c, output, processStatus)
 }
 
@@ -35,11 +35,11 @@ func (r *Route) GetDataFile(c *gin.Context) {
 // @Failure      410 {object} string "Хранение файла закончено. Файл удален"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id [get]
-func (r *Route) GetFile(c *gin.Context) {
+func (h *Handler) Get(c *gin.Context) {
 	id := c.Param("id")
 	password := c.GetHeader("X-Password")
 
-	out, processStatus := r.action.GetFile(id, password)
+	out, processStatus := h.application.FileGet.File(id, password)
 	if processStatus != answer.OK {
 		answer.SendResponseSuccess(c, nil, processStatus)
 		return

@@ -97,7 +97,7 @@ func (s *File) downloadFile(data []byte, mimeType, filename, sessionID, id strin
 		MimeType:  mimeType,
 	}
 
-	if err = s.repo.Save.File(ctx, input); err != nil {
+	if err = s.repo.FileSave.Execute(ctx, input); err != nil {
 		logrus.Error("failed to save g metadata")
 		return nil, err
 	}

@@ -1,20 +1,6 @@
 package file
 
-import (
-	"github.com/jmoiron/sqlx"
-)
-
-type Delete struct {
-	db *sqlx.DB
-}
-
-func NewDelete(db *sqlx.DB) *Delete {
-	return &Delete{
-		db: db,
-	}
-}
-
-func (r *Delete) FilesByFileID(id string) error {
+func (r *File) FilesByFileID(id string) error {
 	_, err := r.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
 	if err != nil {
 		return err
@@ -22,7 +8,7 @@ func (r *Delete) FilesByFileID(id string) error {
 	return nil
 }
 
-func (r *Delete) FilesBySessionID(sessionID string) error {
+func (r *File) FilesBySessionID(sessionID string) error {
 	_, err := r.db.Exec(`DELETE FROM "File"
 		USING "Session"
 		WHERE "Session".session = $1
@@ -32,7 +18,7 @@ func (r *Delete) FilesBySessionID(sessionID string) error {
 	}
 	return nil
 }
-func (r *Delete) File(id int) error {
+func (r *File) File(id int) error {
 	_, err := r.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
 	if err != nil {
 		return err

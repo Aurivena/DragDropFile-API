@@ -21,14 +21,14 @@ var (
 	ErrDuplicateFile = errors.New("g duplicate")
 )
 
-func (a *File) SaveFiles(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, answer.ErrorCode) {
+func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, answer.ErrorCode) {
 	if sessionID == "" || len(files) == 0 || len(files) != len(headers) {
 		return nil, answer.BadRequest
 	}
 
 	newFiles := fileops.GetNewInfo(files, headers)
 
-	id, existingFiles, err := a.service.CheckFilesID(sessionID)
+	id, existingFiles, err := a.srv.CheckFilesID(sessionID)
 	if err != nil {
 		logrus.Error("failed to check files ID")
 		return nil, answer.InternalServerError
@@ -40,7 +40,7 @@ func (a *File) SaveFiles(ctx context.Context, sessionID string, files []multipar
 		return nil, answer.InternalServerError
 	}
 
-	out, err := a.service.Save.FilesToStorage(ctx, id, sessionID, newFiles, existingFiles)
+	out, err := a.srv.Save.FilesToStorage(ctx, id, sessionID, newFiles, existingFiles)
 	if err != nil {
 		logrus.Error("failed to save files")
 		return nil, answer.InternalServerError

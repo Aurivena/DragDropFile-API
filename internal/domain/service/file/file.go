@@ -6,6 +6,13 @@ import (
 )
 
 type File struct {
-	repo  repository.Repository
+	repo  repository.File
 	minio minio.Minio
+}
+
+func New(repo repository.File, minio minio.Minio) *File {
+	return &File{
+		repo:  repo,
+		minio: minio,
+	}
 }

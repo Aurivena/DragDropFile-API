@@ -7,7 +7,7 @@ import (
 )
 
 func (a *File) UpdateCountDownload(count int, sessionID string) answer.ErrorCode {
-	if err := a.repo.Update.CountDownload(count, sessionID); err != nil {
+	if err := a.post.FileUpdate.CountDownload(count, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -15,13 +15,13 @@ func (a *File) UpdateCountDownload(count int, sessionID string) answer.ErrorCode
 	return answer.NoContent
 }
 func (a *File) UpdateDateDeleted(countDayToDeleted int, sessionID string) answer.ErrorCode {
-	files, err := a.repo.Get.ZipMetaBySession(sessionID)
+	files, err := a.post.FileGet.ZipMetaBySession(sessionID)
 	if err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
 	dateDeleted := time.Now().UTC().Add(time.Hour * 24 * time.Duration(countDayToDeleted))
-	if err = a.repo.Update.DateDeleted(dateDeleted, files.FileID); err != nil {
+	if err = a.post.FileUpdate.DateDeleted(dateDeleted, files.FileID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -29,7 +29,7 @@ func (a *File) UpdateDateDeleted(countDayToDeleted int, sessionID string) answer
 	return answer.NoContent
 }
 func (a *File) UpdatePassword(password, sessionID string) answer.ErrorCode {
-	if err := a.repo.Update.Password(password, sessionID); err != nil {
+	if err := a.post.FileUpdate.Password(password, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}
@@ -38,7 +38,7 @@ func (a *File) UpdatePassword(password, sessionID string) answer.ErrorCode {
 }
 
 func (a *File) UpdateDescription(description, sessionID string) answer.ErrorCode {
-	if err := a.repo.Update.Description(description, sessionID); err != nil {
+	if err := a.post.FileUpdate.Description(description, sessionID); err != nil {
 		logrus.Error(err)
 		return answer.InternalServerError
 	}

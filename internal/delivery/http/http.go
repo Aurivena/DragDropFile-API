@@ -1,9 +1,10 @@
 package http
 
 import (
+	"DragDrop-Files/internal/application"
+	"DragDrop-Files/internal/delivery/http/handler/file"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/server"
-	"DragDrop-Files/trash/action"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"strings"
@@ -11,19 +12,21 @@ import (
 )
 
 type Http struct {
-	action *action.Action
+	File *file.Handler
 }
 
-func NewHttp(action *action.Action) *Http {
-	return &Http{action: action}
+func NewHttp(application *application.Application) *Http {
+	return &Http{
+		File: file.New(application),
+	}
 }
 
 func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 	ginSetMode(config.ServerMode)
-	Http := gin.Default()
+	gHttp := gin.Default()
 	allowOrigins := strings.Split(config.Domain, ",")
 
-	Http.Use(cors.New(cors.Config{
+	gHttp.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT"},
 		AllowHeaders:     []string{"X-Session-ID", "X-Password", "Content-Type", "Authorization"},
@@ -31,18 +34,18 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	api := Http.Group("/api")
+	api := gHttp.Group("/api")
 	{
-		api.GET("/file/:id/data", h.GetDataFile)
-		api.POST("/file/save", h.SaveFile)
-		api.GET("/file/:id", h.Get)
-		api.PUT("/file/update/deleted", h.UpdateCountDayToDeleted)
-		api.PUT("/file/update/password", h.UpdatePassword)
-		api.PUT("/file/update/count-download", h.UpdateCountDownload)
-		api.PUT("/file/update/description", h.UpdateDescription)
+		api.GET("/file/:id/data", h.File.DataFile)
+		api.POST("/file/save", h.File.Execute)
+		api.GET("/file/:id", h.File.Get)
+		api.PUT("/file/update/deleted", h.File.CountDayToDeleted)
+		api.PUT("/file/update/password", h.File.Password)
+		api.PUT("/file/update/count-download", h.File.CountDownload)
+		api.PUT("/file/update/description", h.File.Description)
 	}
 
-	return Http
+	return gHttp
 }
 
 func ginSetMode(serverMode string) {

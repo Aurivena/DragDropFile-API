@@ -1,8 +1,8 @@
 package repository
 
-type Repository struct {
-	Get
-	Save
-	Delete
-	Update
+type File struct {
+	FileGet
+	FileSave
+	FileDelete
+	FileUpdate
 }

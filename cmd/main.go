@@ -2,6 +2,7 @@ package main
 
 import (
 	"DragDrop-Files/initialization"
+	"DragDrop-Files/internal/delivery/http"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/server"
 	"context"
@@ -37,8 +38,8 @@ func main() {
 	serverInstance.Stop(context.Background(), businessDatabase)
 }
 
-func run(server server.Server, routes *route.Route, config *entity.ServerConfig) {
-	ginEngine := routes.InitHTTPRoutes(config)
+func run(server server.Server, routes *http.Http, config *entity.ServerConfig) {
+	ginEngine := routes.InitHTTPHttps(config)
 	certificates := initialization.ConfigService.Certificates
 
 	if err := server.Run(config.Port, ginEngine, certificates); err != nil {

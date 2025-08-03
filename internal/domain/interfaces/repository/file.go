@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-type Delete interface {
+type FileDelete interface {
 	FilesBySessionID(sessionID string) error
 	FilesByFileID(id string) error
 	File(id int) error
 }
 
-type Get interface {
+type FileGet interface {
 	FilesBySessionNotZip(sessionID string) ([]entity.FileOutput, error)
 	IdFilesBySession(sessionID string) ([]string, error)
 	ByID(id string) (*entity.FileOutput, error)
@@ -20,11 +20,11 @@ type Get interface {
 	ZipMetaBySession(sessionID string) (*entity.FileOutput, error)
 }
 
-type Save interface {
-	File(ctx context.Context, input entity.FileSave) error
+type FileSave interface {
+	Execute(ctx context.Context, input entity.FileSave) error
 }
 
-type Update interface {
+type FileUpdate interface {
 	CountDownload(count int, session string) error
 	DateDeleted(dateDeleted time.Time, id string) error
 	Password(password string, session string) error

@@ -1,15 +1,21 @@
 package file
 
 import (
-	"DragDrop-Files/internal/application/interfaces/file"
-	"DragDrop-Files/internal/domain/interfaces/repository"
-	"DragDrop-Files/internal/domain/interfaces/service"
+	"DragDrop-Files/internal/domain/service"
 	"DragDrop-Files/internal/infrastructure/minio"
+	"DragDrop-Files/internal/infrastructure/repository/postgres"
 )
 
 type File struct {
-	g       file.Get
-	repo    repository.Repository
-	minio   minio.Minio
-	service service.Service
+	post *postgres.Repository
+	mi   *minio.Minio
+	srv  *service.Service
+}
+
+func New(post *postgres.Repository, mi *minio.Minio, srv *service.Service) *File {
+	return &File{
+		post: post,
+		mi:   mi,
+		srv:  srv,
+	}
 }

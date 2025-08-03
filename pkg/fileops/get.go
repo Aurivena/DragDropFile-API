@@ -2,8 +2,8 @@ package fileops
 
 import (
 	"DragDrop-Files/internal/domain/entity"
+	"encoding/base64"
 	"fmt"
-	"github.com/segmentio/asm/base64"
 	"github.com/sirupsen/logrus"
 	"io"
 	"mime/multipart"
