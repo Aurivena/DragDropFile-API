@@ -1,8 +1,9 @@
 package entity
 
 import (
-	"github.com/minio/minio-go/v7"
 	"time"
+
+	"github.com/minio/minio-go/v7"
 )
 
 type SessionOutput struct {
@@ -67,27 +68,11 @@ type FileGet struct {
 	Password string
 }
 
-type FileUpdate struct {
-	CountDayToDeleted *int    `json:"count_day_to_deleted"`
-	Password          *string `json:"password"`
-	CountDownload     *int    `json:"count_download"`
-	Description       string  `json:"description" db:"description"`
-}
-
-type DayDeletedUpdateInput struct {
-	CountDayToDeleted int `json:"count_day_to_deleted"`
-}
-
-type PasswordUpdateInput struct {
-	Password string `json:"password"`
-}
-
-type CountDownloadUpdateInput struct {
-	CountDownload int `json:"count_download"`
-}
-
-type DescriptionUpdateInput struct {
-	Description string `json:"description" db:"description"`
+type FileUpdateInput struct {
+	CountDayToDeleted int     `json:"count_day_to_deleted,omitempty"`
+	Password          *string `json:"password,omitempty"`
+	CountDownload     *int    `json:"count_download,omitempty"`
+	Description       *string `json:"description,omitempty" db:"description"`
 }
 
 type FileInfo struct {

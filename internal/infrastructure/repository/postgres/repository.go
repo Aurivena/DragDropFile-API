@@ -1,8 +1,9 @@
 package postgres
 
 import (
-	"DragDrop-Files/internal/domain/interfaces/repository"
+	"DragDrop-Files/internal/application/ports/repository"
 	"DragDrop-Files/internal/infrastructure/repository/postgres/file"
+
 	"github.com/jmoiron/sqlx"
 )
 

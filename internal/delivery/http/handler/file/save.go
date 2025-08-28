@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"mime/multipart"
@@ -23,14 +22,14 @@ func (h *Handler) Execute(c *gin.Context) {
 	sessionID := c.GetHeader("X-Session-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
 		logrus.WithError(err).Error("failed to parse multipart form")
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
@@ -48,5 +47,5 @@ func (h *Handler) Execute(c *gin.Context) {
 	}
 
 	output, processStatus := h.application.Execute(context.Background(), sessionID, files, headers)
-	answer.SendResponseSuccess(c, output, processStatus)
+	SendResponseSuccess(c, output, processStatus)
 }

@@ -3,7 +3,7 @@ package initialization
 import (
 	"DragDrop-Files/internal/domain/entity"
 	"encoding/json"
-	"github.com/Aurivena/answer"
+
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -16,14 +16,6 @@ const (
 var (
 	ConfigService = &entity.ConfigService{}
 )
-
-func ErrorInitialization() error {
-	err := answer.AppendCode(410, "Gone")
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func LoadConfiguration() error {
 	logrus.Info("load local config")

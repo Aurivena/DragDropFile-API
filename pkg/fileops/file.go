@@ -4,8 +4,9 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"encoding/base64"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
+
+	"github.com/sirupsen/logrus"
 )
 
 func CheckFiles(outFile *entity.GetFileOutput, file entity.FileOutput, filesBase64 *[]entity.File, path string) error {

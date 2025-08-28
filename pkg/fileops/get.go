@@ -4,11 +4,12 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"encoding/base64"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"mime/multipart"
 	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entity.File {

@@ -1,9 +1,10 @@
 package minio
 
 import (
+	minioS3 "DragDrop-Files/internal/application/ports/s3/minio"
 	"DragDrop-Files/internal/domain/entity"
-	minioS3 "DragDrop-Files/internal/domain/interfaces/s3/minio"
 	"DragDrop-Files/internal/infrastructure/minio/file"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

@@ -3,7 +3,6 @@ module DragDrop-Files
 go 1.24.3
 
 require (
-	github.com/Aurivena/answer v0.0.0-20250407125431-58f71c63193d
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/uuid v1.6.0
@@ -15,6 +14,7 @@ require (
 )
 
 require (
+	github.com/Aurivena/spond/v2 v2.0.9 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect

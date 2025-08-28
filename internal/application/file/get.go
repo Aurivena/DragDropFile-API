@@ -1,51 +1,60 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"errors"
 	"fmt"
-	"github.com/Aurivena/answer"
+
+	_ "github.com/Aurivena/spond/v2/core"
+	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/sirupsen/logrus"
 )
 
-var errFileDeleted = errors.New("file deleted")
-
-func (a *File) File(id, password string) (*entity.GetFileOutput, answer.ErrorCode) {
+func (a *File) File(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
-	file, err := a.post.FileGet.ByID(zipFileID)
+	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
-		return nil, answer.BadRequest
+		return nil, a.NotFound()
 	}
 
-	if err = a.srv.Validate.File(zipFileID, id, password); err != nil {
+	file, err := a.postgresql.FileGet.ByID(id)
+	if err != nil {
+		return nil, a.NotFound()
+	}
+
+	if err = domain.ValidateFile(password, file); err != nil {
 		if errors.Is(err, errFileDeleted) {
-			return nil, Gone
+			if err = a.minioStorage.Delete.File(id); err != nil {
+				return nil, a.NotFound()
+			}
+			return nil, a.Gone()
 		}
-		return nil, answer.InternalServerError
+		return nil, a.InternalServerError()
 	}
 
-	path := fmt.Sprintf("%s/%s", file.Session, file.Name)
-	out, err := a.mi.Get.ByFilename(path)
+	path := fmt.Sprintf("%s/%s", zipFile.Session, zipFile.Name)
+	out, err := a.minioStorage.Get.ByFilename(path)
 	if err != nil {
 		logrus.Error(err)
-		return nil, answer.InternalServerError
+		return nil, a.NotFound()
 	}
 
-	return out, answer.OK
+	return out, nil
 }
 
-func (a *File) Data(id string) (*entity.DataOutput, answer.ErrorCode) {
+func (a *File) Data(id string) (*entity.DataOutput, *envelope.AppError) {
 	id = fmt.Sprintf("%s%s", prefixZipFile, id)
-	out, err := a.post.FileGet.DataFile(id)
+	out, err := a.postgresql.FileGet.DataFile(id)
 	if err != nil {
 		if errors.Is(err, ErrDuplicateFile) {
-			if err = a.mi.Delete.File(id); err != nil {
-				return nil, answer.InternalServerError
+			if err = a.minioStorage.Delete.File(id); err != nil {
+				return nil, a.InternalServerError()
 			}
-			return nil, Gone
+			return nil, a.Gone()
 		}
-		return nil, answer.InternalServerError
+		return nil, a.InternalServerError()
 	}
-	return out, answer.OK
+	return out, nil
 }

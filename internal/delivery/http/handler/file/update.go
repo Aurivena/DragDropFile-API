@@ -2,7 +2,6 @@ package file
 
 import (
 	"DragDrop-Files/internal/domain/entity"
-	"github.com/Aurivena/answer"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,16 +17,16 @@ import (
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/deleted [put]
 func (h *Handler) CountDayToDeleted(c *gin.Context) {
-	var input *entity.DayDeletedUpdateInput
+	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := h.application.FileUpdate.DateDeleted(input.CountDayToDeleted, sessionID)
-	answer.SendResponseSuccess(c, nil, processStatus)
+	SendResponseSuccess(c, nil, processStatus)
 }
 
 // @Summary      Обновить пароль для файла
@@ -42,16 +41,16 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/password [put]
 func (h *Handler) Password(c *gin.Context) {
-	var input *entity.PasswordUpdateInput
+	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
 	sessionID := c.GetHeader("X-Session-ID")
 
-	processStatus := h.application.FileUpdate.Password(input.Password, sessionID)
-	answer.SendResponseSuccess(c, nil, processStatus)
+	processStatus := h.FileUpdate.Password(input.Password, sessionID)
+	SendResponseSuccess(c, nil, processStatus)
 }
 
 // @Summary      Обновить количество загрузок файла
@@ -66,16 +65,16 @@ func (h *Handler) Password(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/count-download [put]
 func (h *Handler) CountDownload(c *gin.Context) {
-	var input *entity.CountDownloadUpdateInput
+	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := h.application.FileUpdate.CountDownload(input.CountDownload, sessionID)
-	answer.SendResponseSuccess(c, nil, processStatus)
+	SendResponseSuccess(c, nil, processStatus)
 }
 
 // @Summary      Обновить описание файла
@@ -90,14 +89,14 @@ func (h *Handler) CountDownload(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/description [put]
 func (h *Handler) Description(c *gin.Context) {
-	var input *entity.DescriptionUpdateInput
+	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		answer.SendResponseSuccess(c, nil, answer.BadRequest)
+		SendResponseSuccess(c, nil, BadRequest)
 		return
 	}
 
 	sessionID := c.GetHeader("X-Session-ID")
 
 	processStatus := h.application.FileUpdate.Description(input.Description, sessionID)
-	answer.SendResponseSuccess(c, nil, processStatus)
+	SendResponseSuccess(c, nil, processStatus)
 }

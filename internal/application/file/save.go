@@ -1,63 +1,101 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/fileops"
-	"DragDrop-Files/pkg/idgen"
 	"context"
 	"errors"
-	"github.com/Aurivena/answer"
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"mime/multipart"
+	"sync"
+
+	"github.com/Aurivena/spond/v2/envelope"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const (
-	Gone          = 410
 	prefixZipFile = "dg-"
-	lenCodeForID  = 12
 )
 
 var (
-	ErrDuplicateFile = errors.New("g duplicate")
+	ErrDuplicateFile = errors.New("file duplicate")
 )
 
-func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, answer.ErrorCode) {
+func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
 	if sessionID == "" || len(files) == 0 || len(files) != len(headers) {
-		return nil, answer.BadRequest
+		return nil, a.BadRequest("1. Ваша сессия недействительна\n" + "2. Длина загруженных файлов == 0")
 	}
 
 	newFiles := fileops.GetNewInfo(files, headers)
 
-	id, existingFiles, err := a.srv.CheckFilesID(sessionID)
+	id, existingFiles, err := a.checkFilesID(sessionID)
 	if err != nil {
 		logrus.Error("failed to check files ID")
-		return nil, answer.InternalServerError
+		return nil, a.InternalServerError()
 	}
 
-	id, err = a.setFileID(id)
+	id, err = domain.SetFileID(id)
 	if err != nil {
 		logrus.Error("failed to set g ID")
-		return nil, answer.InternalServerError
+		return nil, a.InternalServerError()
 	}
 
-	out, err := a.srv.Save.Execute(ctx, id, sessionID, newFiles, existingFiles)
+	out, err := a.execute(ctx, id, sessionID, newFiles, existingFiles)
 	if err != nil {
 		logrus.Error("failed to save files")
-		return nil, answer.InternalServerError
+		return nil, a.InternalServerError()
 	}
 
-	return out, answer.OK
+	return out, nil
 }
 
-func (a *File) setFileID(id string) (string, error) {
-	if id != "" {
-		return id, nil
+func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error) {
+	var (
+		wg             sync.WaitGroup
+		mu             sync.Mutex
+		processedFiles []entity.File
+	)
+
+	prefix, err := uuid.NewV7()
+	if err != nil {
+		logrus.Errorf("failed to generate prefix: %v", err)
+		return nil, fmt.Errorf("failed to generate prefix: %w", err)
 	}
 
-	newID, err := idgen.GenerateID(lenCodeForID)
-	if err != nil {
-		logrus.Error(err)
-		return "", err
+	for _, file := range newFiles {
+		wg.Add(1)
+		go func(f entity.File) {
+			defer wg.Done()
+
+			data, err := fileops.DecodeFile(f.FileBase64)
+			if err != nil {
+				return
+			}
+
+			if !a.validDownloadFile(ctx, data, &f, sessionID, id, prefix.String()) {
+				return
+			}
+
+			mu.Lock()
+			processedFiles = append(processedFiles, f)
+			mu.Unlock()
+		}(file)
 	}
-	return newID, nil
+	wg.Wait()
+
+	processedFiles = append(processedFiles, oldFiles...)
+
+	meta, err := a.downloadZipFile(ctx, id, sessionID, prefixZipFile, processedFiles)
+	if err != nil {
+		logrus.Errorf("failed to create zip g: %v", err)
+		return nil, fmt.Errorf("failed to create zip g: %w", err)
+	}
+
+	return &entity.FileSaveOutput{
+		ID:    id,
+		Size:  meta.Size,
+		Count: len(processedFiles),
+	}, nil
 }

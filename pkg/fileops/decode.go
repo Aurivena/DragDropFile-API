@@ -3,8 +3,9 @@ package fileops
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func DecodeFile(fileBase64 string) ([]byte, error) {

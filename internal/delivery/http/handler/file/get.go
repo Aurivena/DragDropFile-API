@@ -2,9 +2,9 @@ package file
 
 import (
 	"fmt"
-	"github.com/Aurivena/answer"
-	"github.com/gin-gonic/gin"
 	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 // @Summary      Получить данные файла
@@ -19,7 +19,7 @@ func (h *Handler) DataFile(c *gin.Context) {
 	id := c.Param("id")
 
 	output, processStatus := h.application.FileGet.Data(id)
-	answer.SendResponseSuccess(c, output, processStatus)
+	SendResponseSuccess(c, output, processStatus)
 }
 
 // @Summary      Получить файл
@@ -40,22 +40,22 @@ func (h *Handler) Get(c *gin.Context) {
 	password := c.GetHeader("X-Password")
 
 	out, processStatus := h.application.FileGet.File(id, password)
-	if processStatus != answer.OK {
-		answer.SendResponseSuccess(c, nil, processStatus)
+	if processStatus != OK {
+		SendResponseSuccess(c, nil, processStatus)
 		return
 	}
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
 		log.Printf("Ошибка Stat() для объекта %s: %v", id, err)
-		answer.SendResponseSuccess(c, nil, answer.InternalServerError)
+		SendResponseSuccess(c, nil, InternalServerError)
 		out.File.Close()
 		return
 	}
 
 	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", out.Name)
 
-	c.DataFromReader(answer.OK,
+	c.DataFromReader(OK,
 		objInfo.Size,
 		objInfo.ContentType,
 		out.File,
