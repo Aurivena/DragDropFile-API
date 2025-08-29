@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func ValidateFile(password string, file *entity.FileOutput) error {
+func ValidateFile(password string, file *entity.File) error {
 	if err := validatePassword(password, file); err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func ValidateFile(password string, file *entity.FileOutput) error {
 	return nil
 }
 
-func validatePassword(password string, file *entity.FileOutput) error {
+func validatePassword(password string, file *entity.File) error {
 
 	if file.Password == nil && password == "" {
 		return nil
@@ -34,7 +34,7 @@ func validatePassword(password string, file *entity.FileOutput) error {
 	return nil
 }
 
-func validateDateDeleted(file *entity.FileOutput) error {
+func validateDateDeleted(file *entity.File) error {
 
 	now := time.Now().UTC()
 	if !now.Before(file.DateDeleted.UTC()) {
@@ -44,7 +44,7 @@ func validateDateDeleted(file *entity.FileOutput) error {
 	return nil
 }
 
-func validateCountDownload(file *entity.FileOutput) error {
+func validateCountDownload(file *entity.File) error {
 	if file.CountDownload == 0 {
 		return errors.New("file deleted")
 	}

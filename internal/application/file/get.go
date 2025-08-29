@@ -34,7 +34,7 @@ func (a *File) File(id, password string) (*entity.GetFileOutput, *envelope.AppEr
 		return nil, a.InternalServerError()
 	}
 
-	path := fmt.Sprintf("%s/%s", zipFile.Session, zipFile.Name)
+	path := fmt.Sprintf("%s/%s", zipFile.SessionID, zipFile.Name)
 	out, err := a.minioStorage.Get.ByFilename(path)
 	if err != nil {
 		logrus.Error(err)
@@ -44,7 +44,7 @@ func (a *File) File(id, password string) (*entity.GetFileOutput, *envelope.AppEr
 	return out, nil
 }
 
-func (a *File) Data(id string) (*entity.DataOutput, *envelope.AppError) {
+func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {
 	id = fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.postgresql.FileGet.DataFile(id)
 	if err != nil {

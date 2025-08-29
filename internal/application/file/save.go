@@ -51,11 +51,11 @@ func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.
 	return out, nil
 }
 
-func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.File) (*entity.FileSaveOutput, error) {
+func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.FileFFF) (*entity.FileSaveOutput, error) {
 	var (
 		wg             sync.WaitGroup
 		mu             sync.Mutex
-		processedFiles []entity.File
+		processedFiles []entity.FileFFF
 	)
 
 	prefix, err := uuid.NewV7()
@@ -66,7 +66,7 @@ func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldF
 
 	for _, file := range newFiles {
 		wg.Add(1)
-		go func(f entity.File) {
+		go func(f entity.FileFFF) {
 			defer wg.Done()
 
 			data, err := fileops.DecodeFile(f.FileBase64)

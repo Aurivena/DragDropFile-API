@@ -12,7 +12,7 @@ var (
 	countDownload = 365
 )
 
-func (r *File) Execute(ctx context.Context, input entity.FileSave) error {
+func (r *File) Execute(ctx context.Context, input entity.File) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -20,12 +20,12 @@ func (r *File) Execute(ctx context.Context, input entity.FileSave) error {
 	defer tx.Rollback()
 
 	var id string
-	err = tx.QueryRowContext(ctx, `INSERT INTO "File" (file_id, name, mime_type) VALUES ($1,$2,$3) RETURNING id`, input.Id, input.Name, input.MimeType).Scan(&id)
+	err = tx.QueryRowContext(ctx, `INSERT INTO "FileFFF" (file_id, name, mime_type) VALUES ($1,$2,$3) RETURNING id`, input.FileID, input.Name, input.MimeType).Scan(&id)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, `INSERT INTO "Session" (file_id, session) VALUES ($1,$2)`, id, input.SessionID)
+	_, err = tx.ExecContext(ctx, `INSERT INTO "SessionID" (file_id, session) VALUES ($1,$2)`, id, input.SessionID)
 	if err != nil {
 		return err
 	}

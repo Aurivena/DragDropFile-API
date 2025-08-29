@@ -13,15 +13,15 @@ type FileDelete interface {
 }
 
 type FileGet interface {
-	FilesBySessionNotZip(sessionID string) ([]entity.FileOutput, error)
+	FilesBySessionNotZip(sessionID string) ([]entity.File, error)
 	IdFilesBySession(sessionID string) ([]string, error)
-	ByID(id string) (*entity.FileOutput, error)
-	DataFile(id string) (*entity.DataOutput, error)
-	ZipMetaBySession(sessionID string) (*entity.FileOutput, error)
+	ByID(id string) (*entity.File, error)
+	DataFile(id string) (*entity.FileData, error)
+	ZipMetaBySession(sessionID string) (*entity.File, error)
 }
 
 type FileSave interface {
-	Execute(ctx context.Context, input entity.FileSave) error
+	Execute(ctx context.Context, input entity.File) error
 }
 
 type FileUpdate interface {

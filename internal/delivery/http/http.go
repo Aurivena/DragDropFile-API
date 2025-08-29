@@ -5,10 +5,11 @@ import (
 	"DragDrop-Files/internal/delivery/http/handler/file"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/server"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 type Http struct {
@@ -29,7 +30,7 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 	gHttp.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT"},
-		AllowHeaders:     []string{"X-Session-ID", "X-Password", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"X-SessionID-ID", "X-Password", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))

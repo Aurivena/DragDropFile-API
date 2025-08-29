@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) downloadZipFile(ctx context.Context, id, sessionID, prefixZipFile string, files []entity.File) (*minio.UploadInfo, error) {
+func (a *File) downloadZipFile(ctx context.Context, id, sessionID, prefixZipFile string, files []entity.FileFFF) (*minio.UploadInfo, error) {
 	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipData, err := archive.ZipFiles(files, fileIDZip)
 	if err != nil {
@@ -34,8 +34,8 @@ func (a *File) downloadZipFile(ctx context.Context, id, sessionID, prefixZipFile
 }
 
 func (a *File) downloadFile(ctx context.Context, data []byte, mimeType, filename, sessionID, id string) (*minio.UploadInfo, error) {
-	input := entity.FileSave{
-		Id:        id,
+	input := entity.File{
+		FileID:    id,
 		Name:      filename,
 		SessionID: sessionID,
 		MimeType:  mimeType,

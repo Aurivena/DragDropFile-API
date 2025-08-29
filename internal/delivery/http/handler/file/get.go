@@ -18,8 +18,11 @@ import (
 func (h *Handler) DataFile(c *gin.Context) {
 	id := c.Param("id")
 
-	output, processStatus := h.application.FileGet.Data(id)
-	SendResponseSuccess(c, output, processStatus)
+	output, processStatus := h.Data(id)
+	if processStatus {
+
+	}
+	h.spond.SendResponseSuccess(c.Writer, output, processStatus)
 }
 
 // @Summary      Получить файл
@@ -39,9 +42,9 @@ func (h *Handler) Get(c *gin.Context) {
 	id := c.Param("id")
 	password := c.GetHeader("X-Password")
 
-	out, processStatus := h.application.FileGet.File(id, password)
-	if processStatus != OK {
-		SendResponseSuccess(c, nil, processStatus)
+	out, err := h.application.FileGet.File(id, password)
+	if err. != OK {
+		h.spond.SendResponseSuccess(c, nil, processStatus)
 		return
 	}
 

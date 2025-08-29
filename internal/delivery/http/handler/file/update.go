@@ -7,11 +7,11 @@ import (
 
 // @Summary      Обновить дату удаления файла
 // @Description  Обновляет количество дней до автоматического удаления файла.
-// @Tags         File
+// @Tags         FileFFF
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.DayDeletedUpdateInput true "Данные для ввода"
-// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
@@ -23,7 +23,7 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
+	sessionID := c.GetHeader("X-SessionID-ID")
 
 	processStatus := h.application.FileUpdate.DateDeleted(input.CountDayToDeleted, sessionID)
 	SendResponseSuccess(c, nil, processStatus)
@@ -31,11 +31,11 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 
 // @Summary      Обновить пароль для файла
 // @Description  Обновляет пароль, необходимый для доступа к файлу.
-// @Tags         File
+// @Tags         FileFFF
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.PasswordUpdateInput true "Данные для ввода"
-// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
@@ -47,7 +47,7 @@ func (h *Handler) Password(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
+	sessionID := c.GetHeader("X-SessionID-ID")
 
 	processStatus := h.FileUpdate.Password(input.Password, sessionID)
 	SendResponseSuccess(c, nil, processStatus)
@@ -55,11 +55,11 @@ func (h *Handler) Password(c *gin.Context) {
 
 // @Summary      Обновить количество загрузок файла
 // @Description  Устанавливает новое ограничение по количеству скачиваний файла.
-// @Tags         File
+// @Tags         FileFFF
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.CountDownloadUpdateInput true "Данные для ввода"
-// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
@@ -71,7 +71,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
+	sessionID := c.GetHeader("X-SessionID-ID")
 
 	processStatus := h.application.FileUpdate.CountDownload(input.CountDownload, sessionID)
 	SendResponseSuccess(c, nil, processStatus)
@@ -79,11 +79,11 @@ func (h *Handler) CountDownload(c *gin.Context) {
 
 // @Summary      Обновить описание файла
 // @Description  Устанавливает новое описание для файла.
-// @Tags         File
+// @Tags         FileFFF
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.DescriptionUpdateInput true "Данные для ввода"
-// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
 // @Success      204 {object} string "NoContent" "Выходные данные"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
@@ -95,7 +95,7 @@ func (h *Handler) Description(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
+	sessionID := c.GetHeader("X-SessionID-ID")
 
 	processStatus := h.application.FileUpdate.Description(input.Description, sessionID)
 	SendResponseSuccess(c, nil, processStatus)

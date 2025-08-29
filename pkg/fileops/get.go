@@ -12,11 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entity.File {
+func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entity.FileFFF {
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
 
-	var newFiles []entity.File
+	var newFiles []entity.FileFFF
 	for i, file := range files {
 		wg.Add(1)
 		go func(f multipart.File, headers []*multipart.FileHeader, index int) {
@@ -40,7 +40,7 @@ func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entit
 	return newFiles
 }
 
-func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.File, error) {
+func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.FileFFF, error) {
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		logrus.Error("failed to read file")
@@ -51,7 +51,7 @@ func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.Fil
 	mimeType := header.Header.Get("Content-Type")
 	fileBase64 := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
 
-	return &entity.File{
+	return &entity.FileFFF{
 		FileBase64: fileBase64,
 		Filename:   header.Filename,
 	}, nil

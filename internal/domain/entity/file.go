@@ -6,31 +6,21 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-type SessionOutput struct {
-	SessionID string `db:"session"`
-}
-type File struct {
+type FileFFF struct {
 	FileBase64 string `form:"file"`
 	Filename   string `form:"filename"`
 }
 
-type FileOutput struct {
+type File struct {
 	ID            int       `json:"id" db:"id"`
 	FileID        string    `json:"file_id" db:"file_id"`
 	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`
-	Session       string    `json:"session" db:"session"`
+	SessionID     string    `json:"sessionid" db:"sessionid"`
 	Password      *string   `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
 	CountDownload int       `json:"countDownload" db:"count_download"`
 	Description   string    `json:"description" db:"description"`
-}
-
-type FileSave struct {
-	Id        string
-	Name      string
-	SessionID string
-	MimeType  string
 }
 
 type FileSaveOutput struct {
@@ -45,27 +35,11 @@ type GetFileOutput struct {
 	Description string        `json:"description" db:"description"`
 }
 
-type Data struct {
-	Password      *string    `json:"password" db:"password"`
-	DateDeleted   *time.Time `json:"date_deleted" db:"date_deleted"`
-	CountDownload *int       `json:"count_download" db:"count_download"`
-	Description   string     `json:"description" db:"description"`
-}
-
-type DataOutput struct {
+type FileData struct {
 	Password      bool      `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"date_deleted" db:"date_deleted"`
 	CountDownload int       `json:"count_download" db:"count_download"`
 	Description   string    `json:"description" db:"description"`
-}
-
-type FileGetInput struct {
-	Password string `json:"password"`
-}
-
-type FileGet struct {
-	ID       string
-	Password string
 }
 
 type FileUpdateInput struct {
@@ -73,9 +47,4 @@ type FileUpdateInput struct {
 	Password          *string `json:"password,omitempty"`
 	CountDownload     *int    `json:"count_download,omitempty"`
 	Description       *string `json:"description,omitempty" db:"description"`
-}
-
-type FileInfo struct {
-	ID     int    `json:"id"`
-	FileID string `json:"fileID"`
 }

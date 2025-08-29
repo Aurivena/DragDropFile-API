@@ -12,14 +12,14 @@ import (
 // @Tags         File
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
 // @Param        files formData file true "Файл для загрузки"
 // @Success      200 {object} entity.FileSaveOutput "Файл успешно сохранен"
 // @Failure      400 {object} string "Некорректные данные"
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
 func (h *Handler) Execute(c *gin.Context) {
-	sessionID := c.GetHeader("X-Session-ID")
+	sessionID := c.GetHeader("X-SessionID-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
 		SendResponseSuccess(c, nil, BadRequest)

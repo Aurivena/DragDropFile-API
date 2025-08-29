@@ -10,9 +10,9 @@ func (r *File) FilesByFileID(id string) error {
 
 func (r *File) FilesBySessionID(sessionID string) error {
 	_, err := r.db.Exec(`DELETE FROM "File"
-		USING "Session"
-		WHERE "Session".session = $1
-		AND "File".id = "Session".file_id`, sessionID)
+		USING "SessionID"
+		WHERE "SessionID".session = $1
+		AND "File".id = "SessionID".file_id`, sessionID)
 	if err != nil {
 		return err
 	}
