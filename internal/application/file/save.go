@@ -4,10 +4,8 @@ import (
 	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/fileops"
-	"context"
-	"errors"
-	"fmt"
 	"mime/multipart"
+	"runtime"
 	"sync"
 
 	"github.com/Aurivena/spond/v2/envelope"
@@ -20,10 +18,10 @@ const (
 )
 
 var (
-	ErrDuplicateFile = errors.New("file duplicate")
+	maxParallelDefault = runtime.GOMAXPROCS(0)
 )
 
-func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
+func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
 	if sessionID == "" || len(files) == 0 || len(files) != len(headers) {
 		return nil, a.BadRequest("1. Ваша сессия недействительна\n" + "2. Длина загруженных файлов == 0")
 	}
@@ -42,62 +40,33 @@ func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.
 		return nil, a.InternalServerError()
 	}
 
-	out, err := a.execute(ctx, id, sessionID, newFiles, existingFiles)
-	if err != nil {
-		logrus.Error("failed to save files")
-		return nil, a.InternalServerError()
-	}
-
-	return out, nil
-}
-
-func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.FilePayload) (*entity.FileSaveOutput, error) {
 	var (
 		wg             sync.WaitGroup
-		mu             sync.Mutex
-		processedFiles []entity.FilePayload
+		processedFiles []entity.File
 	)
 
 	prefix, err := uuid.NewV7()
 	if err != nil {
 		logrus.Errorf("failed to generate prefix: %v", err)
-		return nil, fmt.Errorf("failed to generate prefix: %w", err)
+		return nil, a.InternalServerError()
 	}
 
 	for _, file := range newFiles {
 		wg.Add(1)
-		go func(f entity.FilePayload) {
-			defer wg.Done()
+		file.Prefix = prefix.String()
+		file.FileID = id
+		file.SessionID = sessionID
 
-			data, err := fileops.DecodeFile(f.FileBase64)
-			if err != nil {
-				return
-			}
-
-			fileValid := entity.File{
-				FileID:    id,
-				Name:      f.Filename,
-				SessionID: sessionID,
-				MimeType:  domain.GetMimeType(f.FileBase64),
-			}
-
-			if !a.validDownloadFile(ctx, data, fileValid, prefix.String()) {
-				return
-			}
-
-			mu.Lock()
-			processedFiles = append(processedFiles, f)
-			mu.Unlock()
-		}(file)
+		go a.processes(&file, processedFiles, &wg)
 	}
 	wg.Wait()
 
-	processedFiles = append(processedFiles, oldFiles...)
+	processedFiles = append(processedFiles, existingFiles...)
 
-	meta, err := a.downloadZipFile(ctx, id, sessionID, prefixZipFile, processedFiles)
+	meta, err := a.downloadZipFile(id, sessionID, prefixZipFile, processedFiles)
 	if err != nil {
 		logrus.Errorf("failed to create zip g: %v", err)
-		return nil, fmt.Errorf("failed to create zip g: %w", err)
+		return nil, a.InternalServerError()
 	}
 
 	return &entity.FileSaveOutput{
@@ -105,4 +74,29 @@ func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldF
 		Size:  meta.Size,
 		Count: len(processedFiles),
 	}, nil
+}
+
+func (a *File) processes(file *entity.File, processedFiles []entity.File, wg *sync.WaitGroup) {
+	var mu sync.Mutex
+	defer wg.Done()
+
+	data, err := fileops.DecodeFile(file.FileBase64)
+	if err != nil {
+		return
+	}
+
+	fileValid := entity.File{
+		FileID:    file.FileID,
+		Name:      file.Name,
+		SessionID: file.SessionID,
+		MimeType:  domain.GetMimeType(file.FileBase64),
+	}
+
+	if !a.validDownloadFile(data, fileValid, file.Prefix) {
+		return
+	}
+
+	mu.Lock()
+	processedFiles = append(processedFiles, *file)
+	mu.Unlock()
 }

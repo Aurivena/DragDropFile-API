@@ -30,7 +30,7 @@ func SetFileID(id string) (string, error) {
 	return newID.String(), nil
 }
 
-func CheckFiles(outFile *entity.GetFileOutput, file entity.File, filesBase64 *[]entity.FilePayload, path string) error {
+func CheckFiles(outFile *entity.GetFileOutput, file entity.File, filesBase64 *[]entity.File, path string) error {
 	content, err := io.ReadAll(outFile.File)
 	if err != nil {
 		logrus.Errorf("failed to read file %s", path)
@@ -42,20 +42,20 @@ func CheckFiles(outFile *entity.GetFileOutput, file entity.File, filesBase64 *[]
 	encoded := base64.StdEncoding.EncodeToString(content)
 	fileBase64 := fmt.Sprintf("data:%s;base64,%s", file.MimeType, encoded)
 
-	fileInfo := entity.FilePayload{
+	fileInfo := entity.File{
 		FileBase64: fileBase64,
-		Filename:   file.Name,
+		Name:       file.Name,
 	}
 	*filesBase64 = append(*filesBase64, fileInfo)
 
 	return nil
 }
 
-func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entity.FilePayload {
+func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entity.File {
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
 
-	var newFiles []entity.FilePayload
+	var newFiles []entity.File
 	for i, file := range files {
 		wg.Add(1)
 		go func(f multipart.File, headers []*multipart.FileHeader, index int) {
@@ -79,7 +79,7 @@ func GetNewInfo(files []multipart.File, headers []*multipart.FileHeader) []entit
 	return newFiles
 }
 
-func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.FilePayload, error) {
+func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.File, error) {
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		logrus.Error("failed to read file")
@@ -90,9 +90,9 @@ func getFileData(file multipart.File, header *multipart.FileHeader) (*entity.Fil
 	mimeType := header.Header.Get("Content-Type")
 	fileBase64 := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
 
-	return &entity.FilePayload{
+	return &entity.File{
 		FileBase64: fileBase64,
-		Filename:   header.Filename,
+		Name:       header.Filename,
 	}, nil
 }
 func GetMimeType(fileBase64 string) string {

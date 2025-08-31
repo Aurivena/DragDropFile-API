@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) File(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
+func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
@@ -48,7 +48,7 @@ func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {
 	id = fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.postgresql.FileGet.DataFile(id)
 	if err != nil {
-		if errors.Is(err, ErrDuplicateFile) {
+		if errors.Is(err, domain.ErrDuplicateFile) {
 			if err = a.minioStorage.Delete.File(id); err != nil {
 				return nil, a.InternalServerError()
 			}

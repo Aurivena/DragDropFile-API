@@ -4,8 +4,9 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"context"
 	"fmt"
-	"github.com/minio/minio-go/v7"
 	"log"
+
+	"github.com/minio/minio-go/v7"
 )
 
 type Get struct {

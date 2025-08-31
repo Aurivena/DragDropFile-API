@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Aurivena/spond/v2/core"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -16,9 +17,9 @@ type Http struct {
 	File *file.Handler
 }
 
-func NewHttp(application *application.Application) *Http {
+func NewHttp(application *application.Application, spond *core.Spond) *Http {
 	return &Http{
-		File: file.New(application),
+		File: file.New(application, spond),
 	}
 }
 

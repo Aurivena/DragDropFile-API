@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) downloadZipFile(ctx context.Context, id, sessionID, prefixZipFile string, files []entity.FilePayload) (*minio.UploadInfo, error) {
+func (a *File) downloadZipFile(id, sessionID, prefixZipFile string, files []entity.File) (*minio.UploadInfo, error) {
 	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipData, err := archive.ZipFiles(files, fileIDZip)
 	if err != nil {
@@ -35,16 +35,16 @@ func (a *File) downloadZipFile(ctx context.Context, id, sessionID, prefixZipFile
 		MimeType:  domain.MimeTypeZip,
 	}
 
-	meta, err := a.downloadFile(ctx, zipData, zipFile)
+	meta, err := a.downloadFile(zipData, zipFile)
 	if err != nil {
 		return nil, err
 	}
 	return meta, nil
 }
 
-func (a *File) downloadFile(ctx context.Context, data []byte, file entity.File) (*minio.UploadInfo, error) {
+func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
 	currentTime := time.Now().Format(time.RFC3339)
-	if err := a.postgresql.FileSave.Execute(ctx, file, currentTime); err != nil {
+	if err := a.postgresql.FileSave.Execute(context.Background(), file, currentTime); err != nil {
 		logrus.Error("failed to save g metadata")
 		return nil, err
 	}

@@ -6,13 +6,10 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-type FilePayload struct {
-	FileBase64 string `json:"file"`
-	Filename   string `json:"filename"`
-}
-
 type File struct {
-	ID            int       `json:"id" db:"id"`
+	ID            int `json:"id" db:"id"`
+	Prefix        string
+	FileBase64    string
 	FileID        string    `json:"file_id" db:"file_id"`
 	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`

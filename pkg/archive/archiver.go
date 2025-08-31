@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func ZipFiles(files []entity.FilePayload, id string) ([]byte, error) {
+func ZipFiles(files []entity.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 
@@ -26,7 +26,7 @@ func ZipFiles(files []entity.FilePayload, id string) ([]byte, error) {
 			continue
 		}
 		header := &zip.FileHeader{
-			Name:   data.Filename,
+			Name:   data.Name,
 			Method: zip.Deflate,
 		}
 

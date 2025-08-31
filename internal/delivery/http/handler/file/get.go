@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // @Summary      Получить данные файла
 // @Description  Получает данные файла по указаному id.
-// @Tags         File
+// @Tags         Get
 // @Produce      json
 // @Param        id path string true "Идентификатор файла"
 // @Success      200 {object} entity.DataOutput "Файл успешно сохранен"
@@ -17,17 +19,23 @@ import (
 // @Router       /file/:id/data [get]
 func (h *Handler) DataFile(c *gin.Context) {
 	id := c.Param("id")
-
-	output, processStatus := h.Data(id)
-	if processStatus {
-
+	if id == "" {
+		logrus.Error("missing session ID header")
+		h.spond.SendResponseError(c.Writer, *h.ErrorID())
+		return
 	}
-	h.spond.SendResponseSuccess(c.Writer, output, processStatus)
+
+	output, errResp := h.application.File.Data(id)
+	if errResp != nil {
+		h.spond.SendResponseError(c.Writer, *errResp)
+		return
+	}
+	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)
 }
 
 // @Summary      Получить файл
 // @Description  Получает файл по переданному идентификатору.
-// @Tags         File
+// @Tags         Get
 // @Accept       json
 // @Produce      octet-stream
 // @Param        id path string true "Идентификатор файла"
@@ -40,25 +48,41 @@ func (h *Handler) DataFile(c *gin.Context) {
 // @Router       /file/:id [get]
 func (h *Handler) Get(c *gin.Context) {
 	id := c.Param("id")
-	password := c.GetHeader("X-Password")
+	if id == "" {
+		logrus.Error("missing session ID header")
+		h.spond.SendResponseError(c.Writer, *h.ErrorID())
+		return
+	}
 
-	out, err := h.application.FileGet.File(id, password)
-	if err. != OK {
-		h.spond.SendResponseSuccess(c, nil, processStatus)
+	password := c.GetHeader("X-Password")
+	if password == "" {
+		logrus.Error("missing session ID header")
+		h.spond.SendResponseError(c.Writer, *h.ErrorPassword())
+		return
+	}
+
+	out, errResp := h.application.File.Get(id, password)
+	if errResp != nil {
+		h.spond.SendResponseError(c.Writer, *errResp)
 		return
 	}
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
 		log.Printf("Ошибка Stat() для объекта %s: %v", id, err)
-		SendResponseSuccess(c, nil, InternalServerError)
-		out.File.Close()
+		h.spond.SendResponseError(c.Writer, *h.spond.BuildError(
+			envelope.NotFound,
+			"Ошибка при обработке файла",
+			"Не удалось обработать файл ваш файл",
+			"1. Обратитесь к администратору.",
+		))
+		_ = out.File.Close()
 		return
 	}
 
 	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", out.Name)
 
-	c.DataFromReader(OK,
+	c.DataFromReader(int(envelope.Success),
 		objInfo.Size,
 		objInfo.ContentType,
 		out.File,

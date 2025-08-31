@@ -3,14 +3,13 @@ package file
 import (
 	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) checkFilesID(sessionID string) (string, []entity.FilePayload, error) {
+func (a *File) checkFilesID(sessionID string) (string, []entity.File, error) {
 	files, err := a.postgresql.FileGet.FilesBySessionNotZip(sessionID)
 	if err != nil {
 		logrus.Error("failed to g files by session")
@@ -21,7 +20,7 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.FilePayload, err
 		return "", nil, nil
 	}
 
-	var filesBase64 []entity.FilePayload
+	var filesBase64 []entity.File
 	for _, file := range files {
 		path := fmt.Sprintf("%s/%s", sessionID, file.Name)
 		out, err := a.minioStorage.Get.ByFilename(path)
@@ -64,11 +63,11 @@ func (a *File) registerDownload(countDownload int, session string) error {
 	return nil
 }
 
-func (a *File) validDownloadFile(ctx context.Context, data []byte, file entity.File, prefix string) bool {
-	_, err := a.downloadFile(ctx, data, file)
+func (a *File) validDownloadFile(data []byte, file entity.File, prefix string) bool {
+	_, err := a.downloadFile(data, file)
 	if errors.Is(err, domain.ErrFileDeleted) {
 		file.Name = fmt.Sprintf("dublicate-%s-%s", prefix, file.Name)
-		_, err = a.downloadFile(ctx, data, file)
+		_, err = a.downloadFile(data, file)
 		if err != nil {
 			logrus.Error(err)
 			return false

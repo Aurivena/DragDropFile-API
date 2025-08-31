@@ -1,15 +1,16 @@
 package file
 
 import (
-	"context"
+	"mime/multipart"
+
+	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"mime/multipart"
 )
 
 // @Summary      Сохранить файл
 // @Description  Сохраняет файл и параметры, переданные пользователем.
-// @Tags         File
+// @Tags         Get
 // @Accept       multipart/form-data
 // @Produce      json
 // @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
@@ -22,14 +23,14 @@ func (h *Handler) Execute(c *gin.Context) {
 	sessionID := c.GetHeader("X-SessionID-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
-		SendResponseSuccess(c, nil, BadRequest)
+		h.spond.SendResponseError(c.Writer, *h.ErrorSessionID())
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
 		logrus.WithError(err).Error("failed to parse multipart form")
-		SendResponseSuccess(c, nil, BadRequest)
+		h.spond.SendResponseError(c.Writer, *h.ErrorSystem())
 		return
 	}
 
@@ -46,6 +47,10 @@ func (h *Handler) Execute(c *gin.Context) {
 		defer f.Close()
 	}
 
-	output, processStatus := h.application.Execute(context.Background(), sessionID, files, headers)
-	SendResponseSuccess(c, output, processStatus)
+	output, errResp := h.application.File.Execute(sessionID, files, headers)
+	if errResp != nil {
+		h.spond.SendResponseError(c.Writer, *errResp)
+		return
+	}
+	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)
 }
