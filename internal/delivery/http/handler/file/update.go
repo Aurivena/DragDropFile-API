@@ -21,14 +21,14 @@ import (
 func (h *Handler) CountDayToDeleted(c *gin.Context) {
 	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		h.spond.SendResponseError(c.Writer, *h.ErrorParse())
+		h.spond.SendResponseError(c.Writer, h.ErrorParse())
 		return
 	}
 
 	sessionID := c.GetHeader("X-SessionID-ID")
 
 	if errResp := h.application.File.DateDeleted(input.CountDayToDeleted, sessionID); errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -48,14 +48,14 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 func (h *Handler) Password(c *gin.Context) {
 	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		h.spond.SendResponseError(c.Writer, *h.ErrorParse())
+		h.spond.SendResponseError(c.Writer, h.ErrorParse())
 		return
 	}
 
 	sessionID := c.GetHeader("X-SessionID-ID")
 
 	if errResp := h.application.File.Password(*input.Password, sessionID); errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -75,14 +75,14 @@ func (h *Handler) Password(c *gin.Context) {
 func (h *Handler) CountDownload(c *gin.Context) {
 	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		h.spond.SendResponseError(c.Writer, *h.ErrorParse())
+		h.spond.SendResponseError(c.Writer, h.ErrorParse())
 		return
 	}
 
 	sessionID := c.GetHeader("X-SessionID-ID")
 
 	if errResp := h.application.File.CountDownload(*input.CountDownload, sessionID); errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -102,18 +102,18 @@ func (h *Handler) CountDownload(c *gin.Context) {
 func (h *Handler) Description(c *gin.Context) {
 	sessionID := c.GetHeader("X-SessionID-ID")
 	if sessionID == "" {
-		h.spond.SendResponseError(c.Writer, *h.ErrorSessionID())
+		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
 		return
 	}
 
 	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
-		h.spond.SendResponseError(c.Writer, *h.ErrorParse())
+		h.spond.SendResponseError(c.Writer, h.ErrorParse())
 		return
 	}
 
 	if errResp := h.application.File.Description(*input.Description, sessionID); errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)

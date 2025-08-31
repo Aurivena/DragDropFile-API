@@ -23,14 +23,14 @@ func (h *Handler) Execute(c *gin.Context) {
 	sessionID := c.GetHeader("X-SessionID-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, *h.ErrorSessionID())
+		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
 		logrus.WithError(err).Error("failed to parse multipart form")
-		h.spond.SendResponseError(c.Writer, *h.ErrorSystem())
+		h.spond.SendResponseError(c.Writer, h.ErrorSystem())
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) Execute(c *gin.Context) {
 
 	output, errResp := h.application.File.Execute(sessionID, files, headers)
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)

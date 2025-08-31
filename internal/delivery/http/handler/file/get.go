@@ -21,13 +21,13 @@ func (h *Handler) DataFile(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, *h.ErrorID())
+		h.spond.SendResponseError(c.Writer, h.ErrorID())
 		return
 	}
 
 	output, errResp := h.application.File.Data(id)
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)
@@ -50,27 +50,27 @@ func (h *Handler) Get(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, *h.ErrorID())
+		h.spond.SendResponseError(c.Writer, h.ErrorID())
 		return
 	}
 
 	password := c.GetHeader("X-Password")
 	if password == "" {
 		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, *h.ErrorPassword())
+		h.spond.SendResponseError(c.Writer, h.ErrorPassword())
 		return
 	}
 
 	out, errResp := h.application.File.Get(id, password)
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, *errResp)
+		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
 		log.Printf("Ошибка Stat() для объекта %s: %v", id, err)
-		h.spond.SendResponseError(c.Writer, *h.spond.BuildError(
+		h.spond.SendResponseError(c.Writer, h.spond.BuildError(
 			envelope.NotFound,
 			"Ошибка при обработке файла",
 			"Не удалось обработать файл ваш файл",
