@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func ZipFiles(files []entity.FileFFF, id string) ([]byte, error) {
+func ZipFiles(files []entity.FilePayload, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 

@@ -1,12 +1,8 @@
 package file
 
 import (
-	"errors"
-
 	"github.com/Aurivena/spond/v2/envelope"
 )
-
-var errFileDeleted = errors.New("file deleted")
 
 func (a *File) NotFound() *envelope.AppError {
 	return a.spond.BuildError(

@@ -25,7 +25,7 @@ func (a *File) File(id, password string) (*entity.GetFileOutput, *envelope.AppEr
 	}
 
 	if err = domain.ValidateFile(password, file); err != nil {
-		if errors.Is(err, errFileDeleted) {
+		if errors.Is(err, domain.ErrFileDeleted) {
 			if err = a.minioStorage.Delete.File(id); err != nil {
 				return nil, a.NotFound()
 			}

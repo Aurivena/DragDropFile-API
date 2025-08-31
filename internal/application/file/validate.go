@@ -1,8 +1,8 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
-	"DragDrop-Files/pkg/fileops"
 	"context"
 	"errors"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) checkFilesID(sessionID string) (string, []entity.FileFFF, error) {
+func (a *File) checkFilesID(sessionID string) (string, []entity.FilePayload, error) {
 	files, err := a.postgresql.FileGet.FilesBySessionNotZip(sessionID)
 	if err != nil {
 		logrus.Error("failed to g files by session")
@@ -21,7 +21,7 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.FileFFF, error) 
 		return "", nil, nil
 	}
 
-	var filesBase64 []entity.FileFFF
+	var filesBase64 []entity.FilePayload
 	for _, file := range files {
 		path := fmt.Sprintf("%s/%s", sessionID, file.Name)
 		out, err := a.minioStorage.Get.ByFilename(path)
@@ -30,7 +30,7 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.FileFFF, error) 
 			return "", nil, err
 		}
 
-		if err = fileops.CheckFiles(out, file, &filesBase64, path); err != nil {
+		if err = domain.CheckFiles(out, file, &filesBase64, path); err != nil {
 			logrus.Error(err)
 			return "", nil, err
 		}
@@ -64,11 +64,11 @@ func (a *File) registerDownload(countDownload int, session string) error {
 	return nil
 }
 
-func (a *File) validDownloadFile(ctx context.Context, data []byte, f *entity.FileFFF, sessionID, id, prefix string) bool {
-	_, err := a.downloadFile(ctx, data, fileops.GetMimeType(f.FileBase64), f.Filename, sessionID, id)
-	if errors.Is(err, errFileDeleted) {
-		f.Filename = fmt.Sprintf("dublicate-%s-%s", prefix, f.Filename)
-		_, err = a.downloadFile(ctx, data, fileops.GetMimeType(f.FileBase64), f.Filename, sessionID, id)
+func (a *File) validDownloadFile(ctx context.Context, data []byte, file entity.File, prefix string) bool {
+	_, err := a.downloadFile(ctx, data, file)
+	if errors.Is(err, domain.ErrFileDeleted) {
+		file.Name = fmt.Sprintf("dublicate-%s-%s", prefix, file.Name)
+		_, err = a.downloadFile(ctx, data, file)
 		if err != nil {
 			logrus.Error(err)
 			return false

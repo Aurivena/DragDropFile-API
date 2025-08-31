@@ -7,7 +7,7 @@ import (
 
 // @Summary      Обновить дату удаления файла
 // @Description  Обновляет количество дней до автоматического удаления файла.
-// @Tags         FileFFF
+// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.DayDeletedUpdateInput true "Данные для ввода"
@@ -31,7 +31,7 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 
 // @Summary      Обновить пароль для файла
 // @Description  Обновляет пароль, необходимый для доступа к файлу.
-// @Tags         FileFFF
+// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.PasswordUpdateInput true "Данные для ввода"
@@ -55,7 +55,7 @@ func (h *Handler) Password(c *gin.Context) {
 
 // @Summary      Обновить количество загрузок файла
 // @Description  Устанавливает новое ограничение по количеству скачиваний файла.
-// @Tags         FileFFF
+// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.CountDownloadUpdateInput true "Данные для ввода"
@@ -79,7 +79,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 
 // @Summary      Обновить описание файла
 // @Description  Устанавливает новое описание для файла.
-// @Tags         FileFFF
+// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
 // @Param        input body entity.DescriptionUpdateInput true "Данные для ввода"

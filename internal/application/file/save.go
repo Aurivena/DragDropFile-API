@@ -28,7 +28,7 @@ func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.
 		return nil, a.BadRequest("1. Ваша сессия недействительна\n" + "2. Длина загруженных файлов == 0")
 	}
 
-	newFiles := fileops.GetNewInfo(files, headers)
+	newFiles := domain.GetNewInfo(files, headers)
 
 	id, existingFiles, err := a.checkFilesID(sessionID)
 	if err != nil {
@@ -51,11 +51,11 @@ func (a *File) Execute(ctx context.Context, sessionID string, files []multipart.
 	return out, nil
 }
 
-func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.FileFFF) (*entity.FileSaveOutput, error) {
+func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldFiles []entity.FilePayload) (*entity.FileSaveOutput, error) {
 	var (
 		wg             sync.WaitGroup
 		mu             sync.Mutex
-		processedFiles []entity.FileFFF
+		processedFiles []entity.FilePayload
 	)
 
 	prefix, err := uuid.NewV7()
@@ -66,7 +66,7 @@ func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldF
 
 	for _, file := range newFiles {
 		wg.Add(1)
-		go func(f entity.FileFFF) {
+		go func(f entity.FilePayload) {
 			defer wg.Done()
 
 			data, err := fileops.DecodeFile(f.FileBase64)
@@ -74,7 +74,14 @@ func (a *File) execute(ctx context.Context, id, sessionID string, newFiles, oldF
 				return
 			}
 
-			if !a.validDownloadFile(ctx, data, &f, sessionID, id, prefix.String()) {
+			fileValid := entity.File{
+				FileID:    id,
+				Name:      f.Filename,
+				SessionID: sessionID,
+				MimeType:  domain.GetMimeType(f.FileBase64),
+			}
+
+			if !a.validDownloadFile(ctx, data, fileValid, prefix.String()) {
 				return
 			}
 

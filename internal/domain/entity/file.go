@@ -6,9 +6,9 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-type FileFFF struct {
-	FileBase64 string `form:"file"`
-	Filename   string `form:"filename"`
+type FilePayload struct {
+	FileBase64 string `json:"file"`
+	Filename   string `json:"filename"`
 }
 
 type File struct {
@@ -16,7 +16,7 @@ type File struct {
 	FileID        string    `json:"file_id" db:"file_id"`
 	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`
-	SessionID     string    `json:"sessionid" db:"sessionid"`
+	SessionID     string    `json:"sessionId" db:"session_id"`
 	Password      *string   `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
 	CountDownload int       `json:"countDownload" db:"count_download"`

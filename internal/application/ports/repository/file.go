@@ -21,7 +21,7 @@ type FileGet interface {
 }
 
 type FileSave interface {
-	Execute(ctx context.Context, input entity.File) error
+	Execute(ctx context.Context, input entity.File, currentTime string) error
 }
 
 type FileUpdate interface {
