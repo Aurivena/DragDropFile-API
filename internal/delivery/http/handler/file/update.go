@@ -25,7 +25,7 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-SessionID-ID")
+	sessionID := c.GetHeader("X-Session-ID")
 
 	if errResp := h.application.File.DateDeleted(input.CountDayToDeleted, sessionID); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
@@ -52,7 +52,7 @@ func (h *Handler) Password(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-SessionID-ID")
+	sessionID := c.GetHeader("X-Session-ID")
 
 	if errResp := h.application.File.Password(*input.Password, sessionID); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
@@ -79,7 +79,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-SessionID-ID")
+	sessionID := c.GetHeader("X-Session-ID")
 
 	if errResp := h.application.File.CountDownload(*input.CountDownload, sessionID); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
@@ -100,7 +100,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/description [put]
 func (h *Handler) Description(c *gin.Context) {
-	sessionID := c.GetHeader("X-SessionID-ID")
+	sessionID := c.GetHeader("X-Session-ID")
 	if sessionID == "" {
 		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
 		return

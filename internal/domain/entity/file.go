@@ -13,7 +13,7 @@ type File struct {
 	FileID        string    `json:"file_id" db:"file_id"`
 	Name          string    `json:"name" db:"name"`
 	MimeType      string    `json:"mimeType" db:"mime_type"`
-	SessionID     string    `json:"sessionId" db:"session_id"`
+	SessionID     string    `json:"session" db:"session"`
 	Password      *string   `json:"password" db:"password"`
 	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
 	CountDownload int       `json:"countDownload" db:"count_download"`

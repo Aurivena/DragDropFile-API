@@ -47,6 +47,13 @@ func (h *Handler) DataFile(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id [get]
 func (h *Handler) Get(c *gin.Context) {
+	sessionID := c.GetHeader("X-Session-ID")
+	if sessionID == "" {
+		logrus.Error("missing session ID header")
+		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
+		return
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		logrus.Error("missing session ID header")
@@ -61,7 +68,7 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	out, errResp := h.application.File.Get(id, password)
+	out, errResp := h.application.File.Get(id, password, sessionID)
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return

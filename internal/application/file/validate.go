@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,17 +49,11 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.File, error) {
 	return files[0].FileID, filesBase64, nil
 }
 
-func (a *File) registerDownload(countDownload int, session string) error {
-	if countDownload == 0 {
-		return errors.New("file deleted")
-	}
-
-	if countDownload > 0 {
-		c := countDownload - 1
-		err := a.postgresql.FileUpdate.CountDownload(c, session)
-		if err != nil {
-			return err
-		}
+func (a *File) registerDownload(countDownload int, session string) *envelope.AppError {
+	c := countDownload - 1
+	err := a.postgresql.FileUpdate.CountDownload(c, session)
+	if err != nil {
+		return a.InternalServerError()
 	}
 	return nil
 }

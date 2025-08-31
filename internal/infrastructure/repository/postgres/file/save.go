@@ -18,7 +18,7 @@ func (r *File) Execute(ctx context.Context, input entity.File, currentTime strin
 	defer tx.Rollback()
 
 	var id string
-	err = tx.QueryRowContext(ctx, `INSERT INTO "FilePayload" (file_id, name, mime_type) VALUES ($1,$2,$3) RETURNING id`, input.FileID, input.Name, input.MimeType).Scan(&id)
+	err = tx.QueryRowContext(ctx, `INSERT INTO "File" (file_id, name, mime_type) VALUES ($1,$2,$3) RETURNING id`, input.FileID, input.Name, input.MimeType).Scan(&id)
 	if err != nil {
 		return err
 	}

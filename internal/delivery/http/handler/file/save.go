@@ -20,7 +20,7 @@ import (
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
 func (h *Handler) Execute(c *gin.Context) {
-	sessionID := c.GetHeader("X-SessionID-ID")
+	sessionID := c.GetHeader("X-Session-ID")
 	if sessionID == "" {
 		logrus.Error("missing session ID header")
 		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())

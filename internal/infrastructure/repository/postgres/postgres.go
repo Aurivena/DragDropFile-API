@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type PostgresDBConfig struct {
+type DBConfig struct {
 	Host     string
 	Port     string
 	Username string
@@ -24,8 +24,13 @@ const (
 	migrationsDir = "migrations"
 )
 
-func NewPostgresDB(config *PostgresDBConfig) (*sqlx.DB, error) {
+func NewPostgresDB(config *DBConfig) (*sqlx.DB, error) {
 	db, err := getDBConnection(config)
+
+	if db == nil {
+		logrus.Errorf("Failed to connect to postgres database: %v", err)
+		return nil, err
+	}
 
 	if err = goose.SetDialect(dbDriverName); err != nil {
 		logrus.Errorf("Failed to set goose dialect: %v", err)
@@ -39,15 +44,15 @@ func NewPostgresDB(config *PostgresDBConfig) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func getDBConnection(config *PostgresDBConfig) (*sqlx.DB, error) {
+func getDBConnection(config *DBConfig) (*sqlx.DB, error) {
 	db, err := sqlx.Connect(dbDriverName, getConnectionString(config))
 	if err != nil {
 		logrus.Error(err.Error())
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	if err := db.Ping(); err != nil {
-		db.Close()
+	if err = db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -55,14 +60,14 @@ func getDBConnection(config *PostgresDBConfig) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func getConnectionString(config *PostgresDBConfig) string {
+func getConnectionString(config *DBConfig) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		config.Host, config.Port, config.Username, config.Password, config.DBName, config.SSLMode)
 }
 
 func NewBusinessDatabase(config *entity.ConfigService) *sqlx.DB {
 	fmt.Println("start database connected")
-	database, err := NewPostgresDB(&PostgresDBConfig{
+	database, err := NewPostgresDB(&DBConfig{
 		Host:     config.BusinessDB.Host,
 		Port:     config.BusinessDB.Port,
 		Username: config.BusinessDB.Username,

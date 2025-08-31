@@ -22,7 +22,8 @@ var (
 )
 
 func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
-	if sessionID == "" || len(files) == 0 || len(files) != len(headers) {
+	//TODO move on delivery level
+	if len(files) == 0 || len(files) != len(headers) {
 		return nil, a.BadRequest("1. Ваша сессия недействительна\n" + "2. Длина загруженных файлов == 0")
 	}
 

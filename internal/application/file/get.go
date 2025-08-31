@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
+func (a *File) Get(id, password, sessionID string) (*entity.GetFileOutput, *envelope.AppError) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
@@ -32,6 +32,10 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppErr
 			return nil, a.Gone()
 		}
 		return nil, a.InternalServerError()
+	}
+
+	if errResp := a.registerDownload(file.CountDownload, sessionID); errResp != nil {
+		return nil, errResp
 	}
 
 	path := fmt.Sprintf("%s/%s", zipFile.SessionID, zipFile.Name)

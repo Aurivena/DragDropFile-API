@@ -31,7 +31,7 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 	gHttp.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT"},
-		AllowHeaders:     []string{"X-SessionID-ID", "X-Password", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"X-Session-ID", "X-Password", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
