@@ -2,6 +2,7 @@ package file
 
 import (
 	"DragDrop-Files/internal/domain/entity"
+	"DragDrop-Files/internal/middleware"
 
 	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/gin-gonic/gin"
@@ -25,9 +26,7 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
-
-	if errResp := h.application.File.DateDeleted(input.CountDayToDeleted, sessionID); errResp != nil {
+	if errResp := h.application.File.DateDeleted(input.CountDayToDeleted, c.GetHeader(middleware.Session)); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
@@ -52,9 +51,7 @@ func (h *Handler) Password(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
-
-	if errResp := h.application.File.Password(*input.Password, sessionID); errResp != nil {
+	if errResp := h.application.File.Password(*input.Password, c.GetHeader(middleware.Session)); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
@@ -79,9 +76,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 		return
 	}
 
-	sessionID := c.GetHeader("X-Session-ID")
-
-	if errResp := h.application.File.CountDownload(*input.CountDownload, sessionID); errResp != nil {
+	if errResp := h.application.File.CountDownload(*input.CountDownload, c.GetHeader(middleware.Session)); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
@@ -100,19 +95,13 @@ func (h *Handler) CountDownload(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/update/description [put]
 func (h *Handler) Description(c *gin.Context) {
-	sessionID := c.GetHeader("X-Session-ID")
-	if sessionID == "" {
-		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
-		return
-	}
-
 	var input *entity.FileUpdateInput
 	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
 		h.spond.SendResponseError(c.Writer, h.ErrorParse())
 		return
 	}
 
-	if errResp := h.application.File.Description(*input.Description, sessionID); errResp != nil {
+	if errResp := h.application.File.Description(*input.Description, c.GetHeader(middleware.Session)); errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}

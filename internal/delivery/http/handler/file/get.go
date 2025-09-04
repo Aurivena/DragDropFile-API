@@ -1,6 +1,7 @@
 package file
 
 import (
+	"DragDrop-Files/internal/middleware"
 	"fmt"
 	"log"
 
@@ -18,14 +19,7 @@ import (
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id/data [get]
 func (h *Handler) DataFile(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, h.ErrorID())
-		return
-	}
-
-	output, errResp := h.application.File.Data(id)
+	output, errResp := h.application.File.Data(c.GetHeader(middleware.Id))
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
@@ -47,20 +41,6 @@ func (h *Handler) DataFile(c *gin.Context) {
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id [get]
 func (h *Handler) Get(c *gin.Context) {
-	sessionID := c.GetHeader("X-Session-ID")
-	if sessionID == "" {
-		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
-		return
-	}
-
-	id := c.Param("id")
-	if id == "" {
-		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, h.ErrorID())
-		return
-	}
-
 	password := c.GetHeader("X-Password")
 	if password == "" {
 		logrus.Error("missing session ID header")
@@ -68,7 +48,7 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	out, errResp := h.application.File.Get(id, password, sessionID)
+	out, errResp := h.application.File.Get(c.GetHeader(middleware.Id), password, c.GetHeader(middleware.Session))
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
@@ -76,7 +56,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
-		log.Printf("Ошибка Stat() для объекта %s: %v", id, err)
+		log.Printf("Ошибка Stat() для объекта %s: %v", middleware.Id, err)
 		h.spond.SendResponseError(c.Writer, h.spond.BuildError(
 			envelope.NotFound,
 			"Ошибка при обработке файла",

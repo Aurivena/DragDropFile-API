@@ -2,25 +2,6 @@ package file
 
 import "github.com/Aurivena/spond/v2/envelope"
 
-func (h *Handler) ErrorSessionID() *envelope.AppError {
-	return h.spond.BuildError(
-		envelope.BadRequest,
-		"Отсутствует sessionID",
-		"Не удалось определить sessionID пользователя",
-		"1. Перезагрузите страницу.\n"+
-			"2. Обратитесь к создателю ресурса.",
-	)
-}
-
-func (h *Handler) ErrorID() *envelope.AppError {
-	return h.spond.BuildError(
-		envelope.BadRequest,
-		"Проблема с ID файла",
-		"Не удалось определить ID файла",
-		"1. Сделайте повторно запрос.",
-	)
-}
-
 func (h *Handler) ErrorPassword() *envelope.AppError {
 	return h.spond.BuildError(
 		envelope.BadRequest,

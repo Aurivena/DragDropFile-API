@@ -41,7 +41,7 @@ func run(server server.Server, routes *http.Http, config *entity.ServerConfig) {
 
 	if err := server.Run(config.Port, ginEngine, certificates); err != nil {
 		if err.Error() != "http: Server closed" {
-			logrus.Fatalf("error occurred while running http server: %s", nil, err.Error())
+			logrus.Fatalf("error occurred while running http server: %s", err.Error())
 		}
 	}
 }

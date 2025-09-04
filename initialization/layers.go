@@ -5,6 +5,7 @@ import (
 	"DragDrop-Files/internal/delivery/http"
 	"DragDrop-Files/internal/infrastructure/minio"
 	"DragDrop-Files/internal/infrastructure/repository/postgres"
+	"DragDrop-Files/internal/middleware"
 
 	"github.com/Aurivena/spond/v2/core"
 	"github.com/jmoiron/sqlx"
@@ -20,6 +21,7 @@ func InitLayers() (delivery *http.Http, businessDatabase *sqlx.DB) {
 	repositories := postgres.New(&sources)
 	minioStorage := minio.New(&ConfigService.Minio, minioClient)
 	app := application.New(repositories, minioStorage, spond)
-	delivery = http.NewHttp(app, spond)
+	middleware := middleware.New(spond)
+	delivery = http.NewHttp(app, spond, middleware)
 	return delivery, businessDatabase
 }

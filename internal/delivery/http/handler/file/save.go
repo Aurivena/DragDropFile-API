@@ -1,6 +1,7 @@
 package file
 
 import (
+	"DragDrop-Files/internal/middleware"
 	"mime/multipart"
 
 	"github.com/Aurivena/spond/v2/envelope"
@@ -20,13 +21,6 @@ import (
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/save [post]
 func (h *Handler) Execute(c *gin.Context) {
-	sessionID := c.GetHeader("X-Session-ID")
-	if sessionID == "" {
-		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, h.ErrorSessionID())
-		return
-	}
-
 	form, err := c.MultipartForm()
 	if err != nil {
 		logrus.WithError(err).Error("failed to parse multipart form")
@@ -47,7 +41,7 @@ func (h *Handler) Execute(c *gin.Context) {
 		defer f.Close()
 	}
 
-	output, errResp := h.application.File.Execute(sessionID, files, headers)
+	output, errResp := h.application.File.Execute(c.GetHeader(middleware.Session), files, headers)
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
