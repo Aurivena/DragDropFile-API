@@ -33,8 +33,7 @@ func loadConfig() error {
 		return err
 	}
 
-	err = json.Unmarshal(file, &ConfigService)
-	if err != nil {
+	if err = json.Unmarshal(file, &ConfigService); err != nil {
 		return err
 	}
 

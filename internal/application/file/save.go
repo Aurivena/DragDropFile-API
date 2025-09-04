@@ -5,7 +5,6 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/fileops"
 	"mime/multipart"
-	"runtime"
 	"sync"
 
 	"github.com/Aurivena/spond/v2/envelope"
@@ -17,16 +16,7 @@ const (
 	prefixZipFile = "dg-"
 )
 
-var (
-	maxParallelDefault = runtime.GOMAXPROCS(0)
-)
-
 func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
-	//TODO move on delivery level
-	if len(files) == 0 || len(files) != len(headers) {
-		return nil, a.BadRequest("1. Ваша сессия недействительна\n" + "2. Длина загруженных файлов == 0")
-	}
-
 	newFiles := domain.GetNewInfo(files, headers)
 
 	id, existingFiles, err := a.checkFilesID(sessionID)
@@ -66,7 +56,7 @@ func (a *File) Execute(sessionID string, files []multipart.File, headers []*mult
 
 	meta, err := a.downloadZipFile(id, sessionID, prefixZipFile, processedFiles)
 	if err != nil {
-		logrus.Errorf("failed to create zip g: %v", err)
+		logrus.Errorf("failed to create zip: %v", err)
 		return nil, a.InternalServerError()
 	}
 

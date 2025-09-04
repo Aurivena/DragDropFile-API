@@ -2,7 +2,6 @@ package repository
 
 import (
 	"DragDrop-Files/internal/domain/entity"
-	"context"
 	"time"
 )
 
@@ -21,7 +20,9 @@ type FileGet interface {
 }
 
 type FileSave interface {
-	Execute(ctx context.Context, input entity.File, currentTime string) error
+	Execute(file entity.File) (int, error)
+	ExecuteSession(sessionID string, id int) error
+	ExecuteParameters(file entity.File, currentTime string) error
 }
 
 type FileUpdate interface {

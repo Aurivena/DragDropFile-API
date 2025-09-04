@@ -33,13 +33,3 @@ func (a *File) InternalServerError() *envelope.AppError {
 			"2. Сообщите администратору, если ошибка повторяется.",
 	)
 }
-
-func (a *File) BadRequest(message string) *envelope.AppError {
-	return a.spond.BuildError(
-		envelope.BadRequest,
-		"Некорректный запрос",
-		message,
-		"1. Проверьте корректность введённых данных.\n"+
-			"2. Попробуйте повторить запрос с исправленными значениями.",
-	)
-}

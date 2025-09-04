@@ -3,7 +3,7 @@
 
 CREATE TABLE "File" (
    id serial PRIMARY KEY ,
-   file_id varchar(20),
+   file_id uuid,
    name varchar(255) NOT NULL,
    mime_type varchar(50) NOT NULL
 );

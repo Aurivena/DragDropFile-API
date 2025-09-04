@@ -41,6 +41,11 @@ func (h *Handler) Execute(c *gin.Context) {
 		defer f.Close()
 	}
 
+	if len(files) == 0 || len(files) != len(headers) {
+		h.spond.SendResponseError(c.Writer, h.BadRequest("1. Ваша сессия недействительна\n"+"2. Длина загруженных файлов == 0"))
+		return
+	}
+
 	output, errResp := h.application.File.Execute(c.GetHeader(middleware.Session), files, headers)
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)

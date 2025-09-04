@@ -4,7 +4,6 @@ import (
 	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/archive"
-	"context"
 	"fmt"
 	"time"
 
@@ -44,8 +43,22 @@ func (a *File) downloadZipFile(id, sessionID, prefixZipFile string, files []enti
 
 func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
 	currentTime := time.Now().Format(time.RFC3339)
-	if err := a.postgresql.FileSave.Execute(context.Background(), file, currentTime); err != nil {
-		logrus.Error("failed to save g metadata")
+
+	id, err := a.postgresql.FileSave.Execute(file)
+	if err != nil {
+		logrus.Error("failed to save metadata")
+		return nil, err
+	}
+
+	file.ID = id
+
+	if err = a.postgresql.FileSave.ExecuteSession(file.SessionID, id); err != nil {
+		logrus.Error("failed to save session")
+		return nil, err
+	}
+
+	if err = a.postgresql.FileSave.ExecuteParameters(file, currentTime); err != nil {
+		logrus.Error("failed to save parameters")
 		return nil, err
 	}
 

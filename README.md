@@ -28,10 +28,10 @@
   },
   "minio": {
     "endpoint":"localhost:9000",
-    "minio_root_user":"answer-s3-user",
-    "minio_root_password":"answer-s3-password",
+    "minio_root_user":"answer-minio-user",
+    "minio_root_password":"answer-minio-password",
     "minio_use_ssl": false,
-    "minio_bucket_name":"answer-s3-bucket"
+    "minio_bucket_name":"answer-minio-bucket"
   },
   "certificates": {
     "certificatesPath":"" ,

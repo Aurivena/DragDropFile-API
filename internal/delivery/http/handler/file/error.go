@@ -30,3 +30,13 @@ func (h *Handler) ErrorParse() *envelope.AppError {
 			"2. Обратитесь к администратору.",
 	)
 }
+
+func (h *Handler) BadRequest(message string) *envelope.AppError {
+	return h.spond.BuildError(
+		envelope.BadRequest,
+		"Некорректный запрос",
+		message,
+		"1. Проверьте корректность введённых данных.\n"+
+			"2. Попробуйте повторить запрос с исправленными значениями.",
+	)
+}
