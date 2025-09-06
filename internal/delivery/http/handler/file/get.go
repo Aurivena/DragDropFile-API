@@ -7,7 +7,6 @@ import (
 
 	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // @Summary      Получить данные файла
@@ -19,7 +18,8 @@ import (
 // @Failure      500 {object} string "Внутренняя ошибка сервера"
 // @Router       /file/:id/data [get]
 func (h *Handler) DataFile(c *gin.Context) {
-	output, errResp := h.application.File.Data(c.GetHeader(middleware.Id))
+	id, _ := c.Get(middleware.CtxFileID)
+	output, errResp := h.application.File.Data(id.(string))
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
@@ -42,13 +42,10 @@ func (h *Handler) DataFile(c *gin.Context) {
 // @Router       /file/:id [get]
 func (h *Handler) Get(c *gin.Context) {
 	password := c.GetHeader("X-Password")
-	if password == "" {
-		logrus.Error("missing session ID header")
-		h.spond.SendResponseError(c.Writer, h.ErrorPassword())
-		return
-	}
 
-	out, errResp := h.application.File.Get(c.GetHeader(middleware.Id), password, c.GetHeader(middleware.Session))
+	id, _ := c.Get(middleware.CtxFileID)
+
+	out, errResp := h.application.File.Get(id.(string), password, c.GetHeader(middleware.Session))
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
@@ -56,7 +53,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
-		log.Printf("Ошибка Stat() для объекта %s: %v", middleware.Id, err)
+		log.Printf("Ошибка Stat() для объекта %s: %v", id.(string), err)
 		h.spond.SendResponseError(c.Writer, h.spond.BuildError(
 			envelope.NotFound,
 			"Ошибка при обработке файла",

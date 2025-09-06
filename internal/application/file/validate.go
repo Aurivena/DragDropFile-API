@@ -64,7 +64,6 @@ func (a *File) validDownloadFile(data []byte, file entity.File, prefix string) b
 		file.Name = fmt.Sprintf("dublicate-%s-%s", prefix, file.Name)
 		_, err = a.downloadFile(data, file)
 		if err != nil {
-			logrus.Error(err)
 			return false
 		}
 	}

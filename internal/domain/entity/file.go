@@ -34,8 +34,8 @@ type GetFileOutput struct {
 
 type FileData struct {
 	Password      bool      `json:"password" db:"password"`
-	DateDeleted   time.Time `json:"date_deleted" db:"date_deleted"`
-	CountDownload int       `json:"count_download" db:"count_download"`
+	DateDeleted   time.Time `json:"dateDeleted" db:"date_deleted"`
+	CountDownload int       `json:"countDownload" db:"count_download"`
 	Description   string    `json:"description" db:"description"`
 }
 

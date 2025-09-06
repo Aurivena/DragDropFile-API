@@ -2,6 +2,7 @@ package domain
 
 import (
 	"DragDrop-Files/internal/domain/entity"
+	"DragDrop-Files/pkg/idgen"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -9,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,12 +22,12 @@ func SetFileID(id string) (string, error) {
 		return id, nil
 	}
 
-	newID, err := uuid.NewV7()
+	newID, err := idgen.GenerateID()
 	if err != nil {
 		logrus.Error(err)
 		return "", err
 	}
-	return newID.String(), nil
+	return newID, nil
 }
 
 func CheckFiles(outFile *entity.GetFileOutput, file entity.File, filesBase64 *[]entity.File, path string) error {

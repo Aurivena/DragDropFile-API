@@ -39,9 +39,9 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	api := gHttp.Group("/api", h.Middleware.Session)
+	api := gHttp.Group("/api")
 	{
-		file := api.Group("/file")
+		file := api.Group("/file", h.Middleware.Session)
 		{
 			update := file.Group("update")
 			{
@@ -50,13 +50,13 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 				update.PUT("/count-download", h.File.CountDownload)
 				update.PUT("/description", h.File.Description)
 			}
-			fileID := file.Group("/:id", h.Middleware.FileID)
-			{
-				fileID.GET("/data", h.File.DataFile)
-				fileID.GET("", h.File.Get)
-			}
 
 			file.POST("/save", h.File.Execute)
+		}
+		fileID := api.Group("/file/:id", h.Middleware.FileID)
+		{
+			fileID.GET("/data", h.File.DataFile)
+			fileID.GET("", h.File.Get)
 		}
 
 	}

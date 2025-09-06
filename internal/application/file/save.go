@@ -4,11 +4,12 @@ import (
 	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/fileops"
+	"DragDrop-Files/pkg/idgen"
 	"mime/multipart"
+	"runtime"
 	"sync"
 
 	"github.com/Aurivena/spond/v2/envelope"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,12 +17,15 @@ const (
 	prefixZipFile = "dg-"
 )
 
+var (
+	workerPool = runtime.GOMAXPROCS(0)
+)
+
 func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
 	newFiles := domain.GetNewInfo(files, headers)
 
 	id, existingFiles, err := a.checkFilesID(sessionID)
 	if err != nil {
-		logrus.Error("failed to check files ID")
 		return nil, a.InternalServerError()
 	}
 
@@ -32,29 +36,37 @@ func (a *File) Execute(sessionID string, files []multipart.File, headers []*mult
 	}
 
 	var (
-		wg             sync.WaitGroup
 		processedFiles []entity.File
 	)
 
-	prefix, err := uuid.NewV7()
+	prefix, err := idgen.GenerateID()
 	if err != nil {
 		logrus.Errorf("failed to generate prefix: %v", err)
 		return nil, a.InternalServerError()
 	}
 
+	jobs := make(chan entity.File)
+
+	pool := domain.Pool{}
+
+	for w := 0; w < workerPool; w++ {
+		go pool.Work(jobs, processedFiles, a.processes)
+	}
+
+	pool.Add(len(newFiles))
 	for _, file := range newFiles {
-		wg.Add(1)
-		file.Prefix = prefix.String()
+		file.Prefix = prefix
 		file.FileID = id
 		file.SessionID = sessionID
 
-		go a.processes(&file, processedFiles, &wg)
+		jobs <- file
 	}
-	wg.Wait()
+	close(jobs)
+	pool.Wait()
 
 	processedFiles = append(processedFiles, existingFiles...)
 
-	meta, err := a.downloadZipFile(id, sessionID, prefixZipFile, processedFiles)
+	meta, err := a.downloadZipFile(id, sessionID, processedFiles)
 	if err != nil {
 		logrus.Errorf("failed to create zip: %v", err)
 		return nil, a.InternalServerError()
@@ -67,9 +79,8 @@ func (a *File) Execute(sessionID string, files []multipart.File, headers []*mult
 	}, nil
 }
 
-func (a *File) processes(file *entity.File, processedFiles []entity.File, wg *sync.WaitGroup) {
+func (a *File) processes(file *entity.File, processedFiles []entity.File) {
 	var mu sync.Mutex
-	defer wg.Done()
 
 	data, err := fileops.DecodeFile(file.FileBase64)
 	if err != nil {

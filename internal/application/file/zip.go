@@ -4,15 +4,15 @@ import (
 	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"DragDrop-Files/pkg/archive"
+	"DragDrop-Files/pkg/idgen"
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) downloadZipFile(id, sessionID, prefixZipFile string, files []entity.File) (*minio.UploadInfo, error) {
+func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*minio.UploadInfo, error) {
 	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
 	zipData, err := archive.ZipFiles(files, fileIDZip)
 	if err != nil {
@@ -20,15 +20,15 @@ func (a *File) downloadZipFile(id, sessionID, prefixZipFile string, files []enti
 		return nil, err
 	}
 
-	uuidV7, err := uuid.NewV7()
+	generatedID, err := idgen.GenerateID()
 	if err != nil {
 		logrus.Error("failed to generate uid")
 		return nil, err
 	}
 
-	zipUniqueName := fmt.Sprintf("%s%s", uuidV7.String(), domain.MimeTypeZip)
+	zipUniqueName := fmt.Sprintf("%s%s", generatedID, domain.MimeTypeZip)
 	zipFile := entity.File{
-		FileID:    id,
+		FileID:    fileIDZip,
 		Name:      zipUniqueName,
 		SessionID: sessionID,
 		MimeType:  domain.MimeTypeZip,

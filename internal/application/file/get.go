@@ -13,6 +13,7 @@ import (
 
 func (a *File) Get(id, password, sessionID string) (*entity.GetFileOutput, *envelope.AppError) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
+	//TODO Определить почему сохраняется не тот код....
 	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
@@ -49,11 +50,11 @@ func (a *File) Get(id, password, sessionID string) (*entity.GetFileOutput, *enve
 }
 
 func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {
-	id = fmt.Sprintf("%s%s", prefixZipFile, id)
+	zipID := fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.postgresql.FileGet.DataFile(id)
 	if err != nil {
 		if errors.Is(err, domain.ErrDuplicateFile) {
-			if err = a.minioStorage.Delete.File(id); err != nil {
+			if err = a.minioStorage.Delete.File(zipID); err != nil {
 				return nil, a.InternalServerError()
 			}
 			return nil, a.Gone()

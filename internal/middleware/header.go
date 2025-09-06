@@ -8,7 +8,6 @@ import (
 
 const (
 	Session = "X-Session-ID"
-	Id      = "id"
 )
 
 func (m *Middleware) Session(c *gin.Context) {
@@ -26,6 +25,8 @@ func (m *Middleware) Session(c *gin.Context) {
 	}
 }
 
+const CtxFileID = "fileID"
+
 func (m *Middleware) FileID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -38,4 +39,7 @@ func (m *Middleware) FileID(c *gin.Context) {
 		)
 		return
 	}
+
+	c.Set(CtxFileID, id)
+
 }
