@@ -45,11 +45,13 @@ func (h *Handler) Get(c *gin.Context) {
 
 	id, _ := c.Get(middleware.CtxFileID)
 
-	out, errResp := h.application.File.Get(id.(string), password, c.GetHeader(middleware.Session))
+	out, errResp := h.application.File.Get(id.(string), password)
 	if errResp != nil {
 		h.spond.SendResponseError(c.Writer, errResp)
 		return
 	}
+
+	defer out.File.Close()
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
@@ -64,7 +66,7 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", out.Name)
+	contentDisposition := fmt.Sprintf("attachment; filename=%s", out.Name)
 
 	c.DataFromReader(int(envelope.Success),
 		objInfo.Size,

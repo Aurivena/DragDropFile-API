@@ -42,7 +42,6 @@ func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*mini
 }
 
 func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
-
 	id, err := a.postgresql.FileSave.Execute(file)
 	if err != nil {
 		logrus.Error("failed to save metadata")
