@@ -42,7 +42,6 @@ func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*mini
 }
 
 func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
-	currentTime := time.Now().Format(time.RFC3339)
 
 	id, err := a.postgresql.FileSave.Execute(file)
 	if err != nil {
@@ -57,7 +56,9 @@ func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, e
 		return nil, err
 	}
 
-	if err = a.postgresql.FileSave.ExecuteParameters(file, currentTime); err != nil {
+	week := time.Now().Add(time.Duration(24*time.Hour) * 7)
+	file.TimeDeleted = &week
+	if err = a.postgresql.FileSave.ExecuteParameters(file); err != nil {
 		logrus.Error("failed to save parameters")
 		return nil, err
 	}

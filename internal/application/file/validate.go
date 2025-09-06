@@ -13,7 +13,7 @@ import (
 func (a *File) checkFilesID(sessionID string) (string, []entity.File, error) {
 	files, err := a.postgresql.FileGet.FilesBySessionNotZip(sessionID)
 	if err != nil {
-		logrus.Error("failed to g files by session")
+		logrus.Error("failed to files by session")
 		return "", nil, err
 	}
 

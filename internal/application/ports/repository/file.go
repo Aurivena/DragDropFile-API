@@ -22,7 +22,7 @@ type FileGet interface {
 type FileSave interface {
 	Execute(file entity.File) (int, error)
 	ExecuteSession(sessionID string, id int) error
-	ExecuteParameters(file entity.File, currentTime string) error
+	ExecuteParameters(file entity.File) error
 }
 
 type FileUpdate interface {

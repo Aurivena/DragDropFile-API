@@ -35,9 +35,8 @@ func validatePassword(password string, file *entity.File) error {
 }
 
 func validateDateDeleted(file *entity.File) error {
-
 	now := time.Now().UTC()
-	if !now.Before(file.DateDeleted.UTC()) {
+	if !now.Before(file.TimeDeleted.UTC()) {
 		return errors.New("file deleted")
 	}
 

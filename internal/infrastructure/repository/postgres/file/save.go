@@ -28,9 +28,8 @@ func (r *File) ExecuteSession(sessionID string, id int) error {
 	return nil
 }
 
-func (r *File) ExecuteParameters(file entity.File, currentTime string) error {
-
-	_, err := r.db.Exec(`INSERT INTO "File_Parameters" (file_id,session, date_deleted,count_download,password,description) VALUES ($1,$2,$3,$4,$5,$6)`, file.ID, file.SessionID, currentTime, countDownload, nil, "")
+func (r *File) ExecuteParameters(file entity.File) error {
+	_, err := r.db.Exec(`INSERT INTO "File_Parameters" (file_id,session, date_deleted,count_download,password,description) VALUES ($1,$2,$3,$4,$5,$6)`, file.ID, file.SessionID, file.TimeDeleted, countDownload, nil, "")
 	if err != nil {
 		return err
 	}
