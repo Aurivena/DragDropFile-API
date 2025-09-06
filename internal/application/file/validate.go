@@ -51,8 +51,7 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.File, error) {
 
 func (a *File) registerDownload(countDownload int, session string) *envelope.AppError {
 	c := countDownload - 1
-	err := a.postgresql.FileUpdate.CountDownload(c, session)
-	if err != nil {
+	if err := a.postgresql.FileUpdate.CountDownload(c, session); err != nil {
 		return a.InternalServerError()
 	}
 	return nil

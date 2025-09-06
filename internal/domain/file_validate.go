@@ -2,8 +2,6 @@ package domain
 
 import (
 	"DragDrop-Files/internal/domain/entity"
-	"errors"
-	"fmt"
 	"time"
 )
 
@@ -23,12 +21,11 @@ func ValidateFile(password string, file *entity.File) error {
 }
 
 func validatePassword(password string, file *entity.File) error {
-
 	if file.Password == nil && password == "" {
 		return nil
 	}
 	if file.Password == nil || *file.Password != password {
-		return fmt.Errorf("пароли не совпадают")
+		return ErrPasswordInvalid
 	}
 
 	return nil
@@ -37,7 +34,7 @@ func validatePassword(password string, file *entity.File) error {
 func validateDateDeleted(file *entity.File) error {
 	now := time.Now().UTC()
 	if !now.Before(file.TimeDeleted.UTC()) {
-		return errors.New("file deleted")
+		return ErrFileDeleted
 	}
 
 	return nil
@@ -45,7 +42,7 @@ func validateDateDeleted(file *entity.File) error {
 
 func validateCountDownload(file *entity.File) error {
 	if file.CountDownload == 0 {
-		return errors.New("file deleted")
+		return ErrFileDeleted
 	}
 
 	return nil

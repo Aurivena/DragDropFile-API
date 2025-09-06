@@ -33,3 +33,12 @@ func (a *File) InternalServerError() *envelope.AppError {
 			"2. Сообщите администратору, если ошибка повторяется.",
 	)
 }
+
+func (a *File) PasswordInvalid() *envelope.AppError {
+	return a.spond.BuildError(
+		envelope.BadRequest,
+		"Ошибка при запросе",
+		"Проблема при проверке пароля",
+		"1. Убедитесь что вы ввели правильный пароль.",
+	)
+}

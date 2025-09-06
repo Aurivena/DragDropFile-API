@@ -53,7 +53,7 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 
 			file.POST("/save", h.File.Execute)
 		}
-		fileID := api.Group("/file/:id", h.Middleware.FileID)
+		fileID := api.Group("/file/:id", h.Middleware.FileID, h.Middleware.Session)
 		{
 			fileID.GET("/data", h.File.DataFile)
 			fileID.GET("", h.File.Get)

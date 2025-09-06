@@ -13,7 +13,6 @@ import (
 
 func (a *File) Get(id, password, sessionID string) (*entity.GetFileOutput, *envelope.AppError) {
 	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
-	//TODO Определить почему сохраняется не тот код....
 	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
@@ -31,6 +30,9 @@ func (a *File) Get(id, password, sessionID string) (*entity.GetFileOutput, *enve
 				return nil, a.NotFound()
 			}
 			return nil, a.Gone()
+		}
+		if errors.Is(err, domain.ErrPasswordInvalid) {
+			return nil, a.PasswordInvalid()
 		}
 		return nil, a.InternalServerError()
 	}
