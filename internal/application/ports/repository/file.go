@@ -27,7 +27,7 @@ type FileSave interface {
 
 type FileUpdate interface {
 	CountDownload(count int, session string) error
-	DateDeleted(dateDeleted time.Time, id string) error
+	DateDeleted(dateDeleted time.Time, session string) error
 	Password(password string, session string) error
 	Description(description string, session string) error
 }

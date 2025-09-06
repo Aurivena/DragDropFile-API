@@ -16,13 +16,8 @@ func (a *File) CountDownload(count int, sessionID string) *envelope.AppError {
 	return nil
 }
 func (a *File) DateDeleted(countDayToDeleted int, sessionID string) *envelope.AppError {
-	files, err := a.postgresql.FileGet.ZipMetaBySession(sessionID)
-	if err != nil {
-		logrus.Error(err)
-		return a.InternalServerError()
-	}
 	dateDeleted := time.Now().UTC().Add(time.Hour * 24 * time.Duration(countDayToDeleted))
-	if err = a.postgresql.FileUpdate.DateDeleted(dateDeleted, files.FileID); err != nil {
+	if err := a.postgresql.FileUpdate.DateDeleted(dateDeleted, sessionID); err != nil {
 		logrus.Error(err)
 		return a.InternalServerError()
 	}
