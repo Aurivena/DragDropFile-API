@@ -29,7 +29,7 @@ func (a *File) checkFilesID(sessionID string) (string, []entity.File, error) {
 	var filesBase64 []entity.File
 	for _, file := range files {
 		path := fmt.Sprintf("%s/%s", sessionID, file.Name)
-		out, err := a.minioStorage.Get.ByFilename(path)
+		out, err := a.minioStorage.Reader.ByFilename(path)
 		if err != nil {
 			logrus.Errorf("failed to %s from Minio", path)
 			return "", nil, domain.InternalError

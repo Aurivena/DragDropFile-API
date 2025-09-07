@@ -7,13 +7,13 @@ import (
 )
 
 type Delete interface {
-	ByFilename(filename string) error
+	DelByFilename(filename string) error
 }
 
-type Get interface {
+type Reader interface {
 	ByFilename(filename string) (*entity.GetFileOutput, error)
 }
 
-type Save interface {
+type Writer interface {
 	File(data []byte, filename string) (*minio.UploadInfo, error)
 }

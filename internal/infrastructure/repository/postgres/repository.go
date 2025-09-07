@@ -10,7 +10,7 @@ import (
 type Repository struct {
 	FileReader  repository.FileReader
 	FileWriter  repository.FileWriter
-	FileDeleted repository.FileDeleted
+	FileDeleted repository.FileDelete
 	FileUpdater repository.FileUpdater
 }
 

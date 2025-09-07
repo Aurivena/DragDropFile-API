@@ -25,7 +25,7 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, error) {
 
 	if err = domain.ValidateFile(password, file); err != nil {
 		if errors.Is(err, domain.ErrFileDeleted) {
-			if err = a.minioStorage.Delete.ByFilename(id); err != nil {
+			if err = a.minioStorage.Delete.DelByFilename(id); err != nil {
 				return nil, domain.NotFoundError
 			}
 			return nil, domain.GoneError
@@ -37,7 +37,7 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, error) {
 	}
 
 	path := fmt.Sprintf("%s/%s", zipFile.SessionID, zipFile.Name)
-	out, err := a.minioStorage.Get.ByFilename(path)
+	out, err := a.minioStorage.Reader.ByFilename(path)
 	if err != nil {
 		logrus.Error(err)
 		return nil, domain.NotFoundError

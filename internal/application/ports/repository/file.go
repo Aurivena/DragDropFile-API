@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type FileDeleted interface {
+type FileDelete interface {
 	FilesBySessionID(sessionID string) error
 	ID(id int) error
 	FileID(fileID string) error

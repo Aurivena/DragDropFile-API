@@ -1,7 +1,6 @@
-package file
+package s3_minio
 
 import (
-	"DragDrop-Files/internal/domain/entity"
 	"context"
 	"fmt"
 
@@ -9,19 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Delete struct {
-	minioClient *minio.Client
-	cfg         *entity.MinioConfig
-}
-
-func NewDelete(minioClient *minio.Client, cfg *entity.MinioConfig) *Delete {
-	return &Delete{
-		minioClient: minioClient,
-		cfg:         cfg,
-	}
-}
-
-func (s *Delete) ByFilename(filename string) error {
+func (s *MinioS3) DelByFilename(filename string) error {
 	opts := minio.RemoveObjectOptions{}
 	err := s.minioClient.RemoveObject(context.Background(), s.cfg.MinioBucketName, filename, opts)
 	if err != nil {

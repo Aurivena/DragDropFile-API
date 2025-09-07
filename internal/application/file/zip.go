@@ -71,7 +71,7 @@ func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, e
 		return nil, err
 	}
 
-	meta, err := a.minioStorage.Save.File(data, fmt.Sprintf("%s/%s", file.SessionID, file.Name))
+	meta, err := a.minioStorage.Writer.File(data, fmt.Sprintf("%s/%s", file.SessionID, file.Name))
 	if err != nil {
 		return nil, err
 	}

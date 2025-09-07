@@ -1,8 +1,7 @@
-package file
+package s3_minio
 
 import (
 	"DragDrop-Files/internal/domain"
-	"DragDrop-Files/internal/domain/entity"
 	"bytes"
 	"context"
 	"fmt"
@@ -11,19 +10,7 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-type Save struct {
-	minioClient *minio.Client
-	cfg         *entity.MinioConfig
-}
-
-func NewSave(minioClient *minio.Client, cfg *entity.MinioConfig) *Save {
-	return &Save{
-		minioClient: minioClient,
-		cfg:         cfg,
-	}
-}
-
-func (s *Save) File(data []byte, filename string) (*minio.UploadInfo, error) {
+func (s *MinioS3) File(data []byte, filename string) (*minio.UploadInfo, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("пустой файл")
 	}

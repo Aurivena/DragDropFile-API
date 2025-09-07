@@ -3,6 +3,6 @@ package repository
 type File struct {
 	FileReader
 	FileWriter
-	FileDeleted
+	FileDelete
 	FileUpdater
 }

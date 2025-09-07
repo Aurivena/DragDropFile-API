@@ -1,4 +1,4 @@
-package file
+package s3_minio
 
 import (
 	"DragDrop-Files/internal/domain/entity"
@@ -9,19 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Get struct {
-	minioClient *minio.Client
-	cfg         *entity.MinioConfig
-}
-
-func NewGet(minioClient *minio.Client, cfg *entity.MinioConfig) *Get {
-	return &Get{
-		minioClient: minioClient,
-		cfg:         cfg,
-	}
-}
-
-func (s *Get) ByFilename(filename string) (*entity.GetFileOutput, error) {
+func (s *MinioS3) ByFilename(filename string) (*entity.GetFileOutput, error) {
 	var out entity.GetFileOutput
 	optsGet := minio.GetObjectOptions{}
 	objectReader, err := s.minioClient.GetObject(context.Background(), s.cfg.MinioBucketName, filename, optsGet)
