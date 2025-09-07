@@ -57,7 +57,7 @@ func (h *Http) InitHTTPHttps(config *entity.ServerConfig) *gin.Engine {
 		{
 			fileID.GET("/data", h.File.DataFile)
 			fileID.GET("", h.File.Get)
-			fileID.GET("/register", h.File.Registered)
+			fileID.POST("/register", h.File.Registered)
 		}
 
 	}
