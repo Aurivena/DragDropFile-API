@@ -40,8 +40,8 @@ type FileData struct {
 }
 
 type FileUpdateInput struct {
-	CountDayToDeleted int     `json:"count_day_to_deleted,omitempty"`
+	CountDayToDeleted int     `json:"countDayToDeleted,omitempty"`
 	Password          *string `json:"password,omitempty"`
-	CountDownload     *int    `json:"count_download,omitempty"`
+	CountDownload     *int    `json:"countDownload,omitempty"`
 	Description       *string `json:"description,omitempty" db:"description"`
 }

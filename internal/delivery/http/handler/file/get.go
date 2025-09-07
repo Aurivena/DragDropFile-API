@@ -9,14 +9,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// @Summary      Получить данные файла
-// @Description  Получает данные файла по указаному id.
-// @Tags         Get
+// @Tags         File
+// @Summary      Получить метаданные файла
+// @Description  Возвращает служебные данные/метаданные для файла по его идентификатору.
 // @Produce      json
-// @Param        id path string true "Идентификатор файла"
-// @Success      200 {object} entity.DataOutput "Файл успешно сохранен"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
-// @Router       /file/:id/data [get]
+// @Param        id   path   string  true  "Идентификатор файла"
+// @Success      200  {object} entity.DataOutput  "Метаданные успешно получены"
+// @Failure      404  {object} map[string]any     "Файл не найден (Spond error)"
+// @Failure      500  {object} map[string]any     "Внутренняя ошибка сервера (Spond error)"
+// @Router       /file/{id}/data [get]
 func (h *Handler) DataFile(c *gin.Context) {
 	id, _ := c.Get(middleware.CtxFileID)
 	output, errResp := h.application.File.Data(id.(string))
@@ -27,19 +28,21 @@ func (h *Handler) DataFile(c *gin.Context) {
 	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)
 }
 
-// @Summary      Получить файл
-// @Description  Получает файл по переданному идентификатору.
-// @Tags         Get
+// @Tags         File
+// @Summary      Скачать файл
+// @Description  Возвращает бинарное содержимое файла по идентификатору. Требует пароль в заголовке.
 // @Accept       json
 // @Produce      octet-stream
-// @Param        id path string true "Идентификатор файла"
-// @Param        X-Password header string true "Пароль для файлов"
-// @Success      200 {file} string "Файл успешно получен"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      401 {object} string "Неверный пароль"
-// @Failure      410 {object} string "Хранение файла закончено. Файл удален"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
-// @Router       /file/:id [get]
+// @Param        id          path    string  true   "Идентификатор файла"
+// @Param        X-Password  header  string  true   "Пароль для доступа к файлу"
+// @Success      200         {file}  string          "Файл успешно получен"
+// @Header       200         {string} Content-Disposition "attachment; filename=<имя_файла>"
+// @Failure      400         {object} map[string]any "Некорректные данные (Spond error)"
+// @Failure      401         {object} map[string]any "Неверный пароль (Spond error)"
+// @Failure      404         {object} map[string]any "Файл не найден (Spond error)"
+// @Failure      410         {object} map[string]any "Срок хранения истёк. Файл удалён (Spond error)"
+// @Failure      500         {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
+// @Router       /file/{id} [get]
 func (h *Handler) Get(c *gin.Context) {
 	password := c.GetHeader("X-Password")
 
@@ -76,4 +79,23 @@ func (h *Handler) Get(c *gin.Context) {
 			"Content-Disposition": contentDisposition,
 		},
 	)
+}
+
+// @Tags         File
+// @Summary      Отметить файл как зарегистрированный
+// @Description  Ставит внутреннюю отметку "registered" для файла. Тело запроса не требуется.
+// @Param        id   path   string  true  "Идентификатор файла"
+// @Success      204  "Успешно. Тело отсутствует"
+// @Failure      404  {object} map[string]any "Файл не найден (Spond error)"
+// @Failure      500  {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
+// @Router       /file/{id}/register [post]
+func (h *Handler) Registered(c *gin.Context) {
+	id, _ := c.Get(middleware.CtxFileID)
+
+	if errResp := h.application.File.Register(id.(string)); errResp != nil {
+		h.spond.SendResponseError(c.Writer, errResp)
+		return
+	}
+
+	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
 }

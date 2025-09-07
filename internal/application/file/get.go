@@ -37,10 +37,6 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppErr
 		return nil, a.InternalServerError()
 	}
 
-	if errResp := a.registerDownload(file.CountDownload, file.SessionID); errResp != nil {
-		return nil, errResp
-	}
-
 	path := fmt.Sprintf("%s/%s", zipFile.SessionID, zipFile.Name)
 	out, err := a.minioStorage.Get.ByFilename(path)
 	if err != nil {
@@ -49,6 +45,19 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppErr
 	}
 
 	return out, nil
+}
+
+func (a *File) Register(fileID string) *envelope.AppError {
+	file, err := a.postgresql.FileGet.ByID(fileID)
+	if err != nil {
+		return a.NotFound()
+	}
+
+	if errResp := a.registerDownload(file.CountDownload, file.SessionID); errResp != nil {
+		return errResp
+	}
+
+	return nil
 }
 
 func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {

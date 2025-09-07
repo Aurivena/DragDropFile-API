@@ -8,16 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Tags         File
 // @Summary      Обновить дату удаления файла
 // @Description  Обновляет количество дней до автоматического удаления файла.
-// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
-// @Param        input body entity.DayDeletedUpdateInput true "Данные для ввода"
-// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
-// @Success      204 {object} string "NoContent" "Выходные данные"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        input body entity.FileUpdateInput true "Данные для ввода countDayToDeleted"
+// @Success      204 "Успешно. Тело отсутствует"
+// @Failure      400 {object} map[string]any "Некорректные данные (Spond error)"
+// @Failure      500 {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/update/deleted [put]
 func (h *Handler) CountDayToDeleted(c *gin.Context) {
 	var input *entity.FileUpdateInput
@@ -33,16 +33,16 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
 }
 
+// @Tags         File
 // @Summary      Обновить пароль для файла
 // @Description  Обновляет пароль, необходимый для доступа к файлу.
-// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
-// @Param        input body entity.PasswordUpdateInput true "Данные для ввода"
-// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
-// @Success      204 {object} string "NoContent" "Выходные данные"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        input body entity.FileUpdateInput true "Данные для ввода password"
+// @Success      204 "Успешно. Тело отсутствует"
+// @Failure      400 {object} map[string]any "Некорректные данные (Spond error)"
+// @Failure      500 {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/update/password [put]
 func (h *Handler) Password(c *gin.Context) {
 	var input *entity.FileUpdateInput
@@ -58,16 +58,16 @@ func (h *Handler) Password(c *gin.Context) {
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
 }
 
+// @Tags         File
 // @Summary      Обновить количество загрузок файла
 // @Description  Устанавливает новое ограничение по количеству скачиваний файла.
-// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
-// @Param        input body entity.CountDownloadUpdateInput true "Данные для ввода"
-// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
-// @Success      204 {object} string "NoContent" "Выходные данные"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        input body entity.FileUpdateInput true "Данные для ввода countDownload"
+// @Success      204 "Успешно. Тело отсутствует"
+// @Failure      400 {object} map[string]any "Некорректные данные (Spond error)"
+// @Failure      500 {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/update/count-download [put]
 func (h *Handler) CountDownload(c *gin.Context) {
 	var input *entity.FileUpdateInput
@@ -83,16 +83,16 @@ func (h *Handler) CountDownload(c *gin.Context) {
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
 }
 
+// @Tags         File
 // @Summary      Обновить описание файла
 // @Description  Устанавливает новое описание для файла.
-// @Tags         FilePayload
 // @Accept       json
 // @Produce      json
-// @Param        input body entity.DescriptionUpdateInput true "Данные для ввода"
-// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
-// @Success      204 {object} string "NoContent" "Выходные данные"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Param        X-Session-ID header string true "Идентификатор сессии пользователя"
+// @Param        input body entity.FileUpdateInput true "Данные для ввода description"
+// @Success      204 "Успешно. Тело отсутствует"
+// @Failure      400 {object} map[string]any "Некорректные данные (Spond error)"
+// @Failure      500 {object} map[string]any "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/update/description [put]
 func (h *Handler) Description(c *gin.Context) {
 	var input *entity.FileUpdateInput

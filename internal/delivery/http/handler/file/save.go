@@ -9,16 +9,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// @Summary      Сохранить файл
-// @Description  Сохраняет файл и параметры, переданные пользователем.
-// @Tags         Get
+// @Tags         File
+// @Summary      Загрузить файл(ы)
+// @Description  Принимает один или несколько файлов в multipart/form-data и сохраняет их.
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        X-SessionID-ID header string true "Идентификатор сессии пользователя"
-// @Param        files formData file true "Файл для загрузки"
-// @Success      200 {object} entity.FileSaveOutput "Файл успешно сохранен"
-// @Failure      400 {object} string "Некорректные данные"
-// @Failure      500 {object} string "Внутренняя ошибка сервера"
+// @Param        X-Session-ID  header   string  true  "Идентификатор сессии пользователя"
+// @Param        files         formData file    true  "Файлы для загрузки" collectionFormat(multi)
+// @Success      200           {object} entity.FileSaveOutput  "Файл(ы) успешно сохранён(ы)"
+// @Failure      400           {object} map[string]any         "Некорректные данные (Spond error)"
+// @Failure      500           {object} map[string]any         "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/save [post]
 func (h *Handler) Execute(c *gin.Context) {
 	form, err := c.MultipartForm()
