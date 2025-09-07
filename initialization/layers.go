@@ -20,7 +20,7 @@ func InitLayers() (delivery *http.Http, businessDatabase *sqlx.DB) {
 	}
 	repositories := postgres.New(&sources)
 	minioStorage := minio.New(&ConfigService.Minio, minioClient)
-	app := application.New(repositories, minioStorage, spond)
+	app := application.New(repositories, minioStorage)
 	middleware := middleware.New(spond)
 	delivery = http.NewHttp(app, spond, middleware)
 	return delivery, businessDatabase

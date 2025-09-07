@@ -7,16 +7,15 @@ import (
 	"DragDrop-Files/pkg/idgen"
 	"mime/multipart"
 
-	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
+func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, error) {
 	newFiles := domain.GetNewInfo(files, headers)
 
 	id, existingFiles, err := a.checkFilesID(sessionID)
 	if err != nil {
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
 	results := a.workerPool(newFiles, id, sessionID)
@@ -30,7 +29,7 @@ func (a *File) Execute(sessionID string, files []multipart.File, headers []*mult
 
 	out, err := a.downloadZipFile(id, sessionID, processedFiles)
 	if err != nil {
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
 	return out, nil

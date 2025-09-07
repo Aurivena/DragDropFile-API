@@ -25,7 +25,7 @@ func validatePassword(password string, file *entity.File) error {
 		return nil
 	}
 	if file.Password == nil || *file.Password != password {
-		return ErrPasswordInvalid
+		return PasswordInvalidError
 	}
 
 	return nil

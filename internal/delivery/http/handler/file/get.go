@@ -22,7 +22,7 @@ func (h *Handler) DataFile(c *gin.Context) {
 	id, _ := c.Get(middleware.CtxFileID)
 	output, errResp := h.application.File.Data(id.(string))
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)
@@ -50,7 +50,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	out, errResp := h.application.File.Get(id.(string), password)
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h *Handler) Registered(c *gin.Context) {
 	id, _ := c.Get(middleware.CtxFileID)
 
 	if errResp := h.application.File.Register(id.(string)); errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 

@@ -27,7 +27,7 @@ func (h *Handler) CountDayToDeleted(c *gin.Context) {
 	}
 
 	if errResp := h.application.File.DateDeleted(input.CountDayToDeleted, c.GetHeader(middleware.Session)); errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -52,7 +52,7 @@ func (h *Handler) Password(c *gin.Context) {
 	}
 
 	if errResp := h.application.File.Password(*input.Password, c.GetHeader(middleware.Session)); errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -77,7 +77,7 @@ func (h *Handler) CountDownload(c *gin.Context) {
 	}
 
 	if errResp := h.application.File.CountDownload(*input.CountDownload, c.GetHeader(middleware.Session)); errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)
@@ -102,7 +102,7 @@ func (h *Handler) Description(c *gin.Context) {
 	}
 
 	if errResp := h.application.File.Description(*input.Description, c.GetHeader(middleware.Session)); errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.NoContent, nil)

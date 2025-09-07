@@ -1,22 +1,24 @@
 package file
 
 import (
+	"DragDrop-Files/internal/application/ports/repository"
 	"DragDrop-Files/internal/infrastructure/minio"
-	"DragDrop-Files/internal/infrastructure/repository/postgres"
-
-	"github.com/Aurivena/spond/v2/core"
 )
 
 type File struct {
-	postgresql   *postgres.Repository
+	writer       repository.FileWriter
+	reader       repository.FileReader
+	updater      repository.FileUpdater
+	deleted      repository.FileDeleted
 	minioStorage *minio.Minio
-	spond        *core.Spond
 }
 
-func New(postgresql *postgres.Repository, minioStorage *minio.Minio, spond *core.Spond) *File {
+func NewFile(writer repository.FileWriter, reader repository.FileReader, updater repository.FileUpdater, deleted repository.FileDeleted, minioStorage *minio.Minio) *File {
 	return &File{
-		postgresql:   postgresql,
+		writer:       writer,
+		reader:       reader,
+		updater:      updater,
+		deleted:      deleted,
 		minioStorage: minioStorage,
-		spond:        spond,
 	}
 }
