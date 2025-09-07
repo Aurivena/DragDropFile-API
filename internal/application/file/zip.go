@@ -8,28 +8,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/minio/minio-go/v7"
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*entity.FileSaveOutput, *envelope.AppError) {
+func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*entity.FileSaveOutput, error) {
 	fileIDZip := fmt.Sprintf("%s%s", domain.PrefixZipFile, id)
 	zipData, err := archive.ZipFiles(files, fileIDZip)
 	if err != nil {
 		logrus.Error("failed to zip files")
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
 	generatedID, err := idgen.GenerateID()
 	if err != nil {
 		logrus.Error("failed to generate id")
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
-	if err = a.postgresql.FileDelete.FileID(fileIDZip); err != nil {
+	if err = a.deleted.FileID(fileIDZip); err != nil {
 		logrus.Error("failed to delete id file")
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
 	zipFile := entity.File{
@@ -41,7 +40,7 @@ func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*enti
 
 	meta, err := a.downloadFile(zipData, zipFile)
 	if err != nil {
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 	out := entity.FileSaveOutput{
 		ID:    id,
@@ -52,7 +51,7 @@ func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*enti
 }
 
 func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
-	id, err := a.postgresql.FileSave.Execute(file)
+	id, err := a.writer.Execute(file)
 	if err != nil {
 		logrus.Error("failed to save metadata")
 		return nil, err
@@ -60,14 +59,14 @@ func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, e
 
 	file.ID = id
 
-	if err = a.postgresql.FileSave.ExecuteSession(file); err != nil {
+	if err = a.writer.ExecuteSession(file); err != nil {
 		logrus.Error("failed to save session")
 		return nil, err
 	}
 
 	week := time.Now().Add(time.Duration(24*time.Hour) * 7)
 	file.TimeDeleted = &week
-	if err = a.postgresql.FileSave.ExecuteParameters(file); err != nil {
+	if err = a.writer.ExecuteParameters(file); err != nil {
 		logrus.Error("failed to save parameters")
 		return nil, err
 	}

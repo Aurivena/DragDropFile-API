@@ -1,6 +1,7 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/middleware"
 	"mime/multipart"
 
@@ -42,13 +43,13 @@ func (h *Handler) Execute(c *gin.Context) {
 	}
 
 	if len(files) == 0 || len(files) != len(headers) {
-		h.spond.SendResponseError(c.Writer, h.BadRequest("1. Ваша сессия недействительна\n"+"2. Длина загруженных файлов == 0"))
+		h.spond.SendResponseError(c.Writer, h.httpError(domain.BadRequestError))
 		return
 	}
 
 	output, errResp := h.application.File.Execute(c.GetHeader(middleware.Session), files, headers)
 	if errResp != nil {
-		h.spond.SendResponseError(c.Writer, errResp)
+		h.spond.SendResponseError(c.Writer, h.httpError(errResp))
 		return
 	}
 	h.spond.SendResponseSuccess(c.Writer, envelope.Success, output)

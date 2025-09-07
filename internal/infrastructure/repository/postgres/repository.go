@@ -8,10 +8,10 @@ import (
 )
 
 type Repository struct {
-	repository.FileGet
-	repository.FileSave
-	repository.FileDelete
-	repository.FileUpdate
+	FileReader  repository.FileReader
+	FileWriter  repository.FileWriter
+	FileDeleted repository.FileDeleted
+	FileUpdater repository.FileUpdater
 }
 
 type Sources struct {
@@ -20,9 +20,9 @@ type Sources struct {
 
 func New(sources *Sources) *Repository {
 	return &Repository{
-		FileGet:    file.New(sources.BusinessDB),
-		FileSave:   file.New(sources.BusinessDB),
-		FileDelete: file.New(sources.BusinessDB),
-		FileUpdate: file.New(sources.BusinessDB),
+		FileReader:  file.New(sources.BusinessDB),
+		FileWriter:  file.New(sources.BusinessDB),
+		FileDeleted: file.New(sources.BusinessDB),
+		FileUpdater: file.New(sources.BusinessDB),
 	}
 }

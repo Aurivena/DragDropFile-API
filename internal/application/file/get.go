@@ -7,50 +7,49 @@ import (
 	"fmt"
 
 	_ "github.com/Aurivena/spond/v2/core"
-	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
+func (a *File) Get(id, password string) (*entity.GetFileOutput, error) {
 	zipFileID := fmt.Sprintf("%s%s", domain.PrefixZipFile, id)
-	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
+	zipFile, err := a.reader.ByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
-		return nil, a.NotFound()
+		return nil, domain.NotFoundError
 	}
 
-	file, err := a.postgresql.FileGet.ByID(id)
+	file, err := a.reader.ByID(id)
 	if err != nil {
-		return nil, a.NotFound()
+		return nil, domain.NotFoundError
 	}
 
 	if err = domain.ValidateFile(password, file); err != nil {
 		if errors.Is(err, domain.ErrFileDeleted) {
 			if err = a.minioStorage.Delete.ByFilename(id); err != nil {
-				return nil, a.NotFound()
+				return nil, domain.NotFoundError
 			}
-			return nil, a.Gone()
+			return nil, domain.GoneError
 		}
-		if errors.Is(err, domain.ErrPasswordInvalid) {
-			return nil, a.PasswordInvalid()
+		if errors.Is(err, domain.PasswordInvalidError) {
+			return nil, domain.PasswordInvalidError
 		}
-		return nil, a.InternalServerError()
+		return nil, domain.InternalError
 	}
 
 	path := fmt.Sprintf("%s/%s", zipFile.SessionID, zipFile.Name)
 	out, err := a.minioStorage.Get.ByFilename(path)
 	if err != nil {
 		logrus.Error(err)
-		return nil, a.NotFound()
+		return nil, domain.NotFoundError
 	}
 
 	return out, nil
 }
 
-func (a *File) Register(fileID string) *envelope.AppError {
-	file, err := a.postgresql.FileGet.ByID(fileID)
+func (a *File) Register(fileID string) error {
+	file, err := a.reader.ByID(fileID)
 	if err != nil {
-		return a.NotFound()
+		return domain.NotFoundError
 	}
 
 	if errResp := a.registerDownload(file.CountDownload, file.SessionID); errResp != nil {
@@ -60,10 +59,10 @@ func (a *File) Register(fileID string) *envelope.AppError {
 	return nil
 }
 
-func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {
-	out, err := a.postgresql.FileGet.DataFile(id)
+func (a *File) Data(id string) (*entity.FileData, error) {
+	out, err := a.reader.DataFile(id)
 	if err != nil {
-		return nil, a.NotFound()
+		return nil, domain.NotFoundError
 	}
 	return out, nil
 }
