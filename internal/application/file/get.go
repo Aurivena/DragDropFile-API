@@ -12,7 +12,7 @@ import (
 )
 
 func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppError) {
-	zipFileID := fmt.Sprintf("%s%s", prefixZipFile, id)
+	zipFileID := fmt.Sprintf("%s%s", domain.PrefixZipFile, id)
 	zipFile, err := a.postgresql.FileGet.ByID(zipFileID)
 	if err != nil {
 		logrus.Error(err)
@@ -26,7 +26,7 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppErr
 
 	if err = domain.ValidateFile(password, file); err != nil {
 		if errors.Is(err, domain.ErrFileDeleted) {
-			if err = a.minioStorage.Delete.File(id); err != nil {
+			if err = a.minioStorage.Delete.ByFilename(id); err != nil {
 				return nil, a.NotFound()
 			}
 			return nil, a.Gone()
@@ -52,16 +52,9 @@ func (a *File) Get(id, password string) (*entity.GetFileOutput, *envelope.AppErr
 }
 
 func (a *File) Data(id string) (*entity.FileData, *envelope.AppError) {
-	zipID := fmt.Sprintf("%s%s", prefixZipFile, id)
 	out, err := a.postgresql.FileGet.DataFile(id)
 	if err != nil {
-		if errors.Is(err, domain.ErrDuplicateFile) {
-			if err = a.minioStorage.Delete.File(zipID); err != nil {
-				return nil, a.InternalServerError()
-			}
-			return nil, a.Gone()
-		}
-		return nil, a.InternalServerError()
+		return nil, a.NotFound()
 	}
 	return out, nil
 }

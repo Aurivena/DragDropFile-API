@@ -63,7 +63,6 @@ func (r *File) FilesBySessionNotZip(sessionID string) ([]entity.File, error) {
 
 func (r *File) DataFile(id string) (*entity.FileData, error) {
 	var out entity.FileData
-
 	err := r.db.Get(&out, `SELECT (password IS NOT NULL AND password != '') AS password,date_deleted,count_download,description
 					FROM "File_Parameters"
 					INNER JOIN public."File" F on F.id = "File_Parameters".file_id

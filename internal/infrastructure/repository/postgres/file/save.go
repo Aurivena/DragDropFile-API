@@ -18,9 +18,8 @@ func (r *File) Execute(file entity.File) (int, error) {
 	return id, nil
 }
 
-func (r *File) ExecuteSession(sessionID string, id int) error {
-
-	_, err := r.db.Exec(`INSERT INTO "Session" (file_id, session) VALUES ($1,$2)`, id, sessionID)
+func (r *File) ExecuteSession(file entity.File) error {
+	_, err := r.db.Exec(`INSERT INTO "Session" (file_id, session) VALUES ($1,$2)`, file.ID, file.SessionID)
 	if err != nil {
 		return err
 	}

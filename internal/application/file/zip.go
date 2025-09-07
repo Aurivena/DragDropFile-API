@@ -8,37 +8,47 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/minio/minio-go/v7"
 	"github.com/sirupsen/logrus"
 )
 
-func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*minio.UploadInfo, error) {
-	fileIDZip := fmt.Sprintf("%s%s", prefixZipFile, id)
+func (a *File) downloadZipFile(id, sessionID string, files []entity.File) (*entity.FileSaveOutput, *envelope.AppError) {
+	fileIDZip := fmt.Sprintf("%s%s", domain.PrefixZipFile, id)
 	zipData, err := archive.ZipFiles(files, fileIDZip)
 	if err != nil {
 		logrus.Error("failed to zip files")
-		return nil, err
+		return nil, a.InternalServerError()
 	}
 
 	generatedID, err := idgen.GenerateID()
 	if err != nil {
-		logrus.Error("failed to generate uid")
-		return nil, err
+		logrus.Error("failed to generate id")
+		return nil, a.InternalServerError()
 	}
 
-	zipUniqueName := fmt.Sprintf("%s%s", generatedID, domain.MimeTypeZip)
+	if err = a.postgresql.FileDelete.FileID(fileIDZip); err != nil {
+		logrus.Error("failed to delete id file")
+		return nil, a.InternalServerError()
+	}
+
 	zipFile := entity.File{
 		FileID:    fileIDZip,
-		Name:      zipUniqueName,
+		Name:      fmt.Sprintf("%s%s", generatedID, domain.MimeTypeZip),
 		SessionID: sessionID,
 		MimeType:  domain.MimeTypeZip,
 	}
 
 	meta, err := a.downloadFile(zipData, zipFile)
 	if err != nil {
-		return nil, err
+		return nil, a.InternalServerError()
 	}
-	return meta, nil
+	out := entity.FileSaveOutput{
+		ID:    id,
+		Size:  meta.Size,
+		Count: len(files),
+	}
+	return &out, nil
 }
 
 func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, error) {
@@ -50,7 +60,7 @@ func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, e
 
 	file.ID = id
 
-	if err = a.postgresql.FileSave.ExecuteSession(file.SessionID, id); err != nil {
+	if err = a.postgresql.FileSave.ExecuteSession(file); err != nil {
 		logrus.Error("failed to save session")
 		return nil, err
 	}
@@ -62,9 +72,8 @@ func (a *File) downloadFile(data []byte, file entity.File) (*minio.UploadInfo, e
 		return nil, err
 	}
 
-	meta, err := a.minioStorage.Save.File(data, file.SessionID, file.Name)
+	meta, err := a.minioStorage.Save.File(data, fmt.Sprintf("%s/%s", file.SessionID, file.Name))
 	if err != nil {
-		logrus.Error(err)
 		return nil, err
 	}
 

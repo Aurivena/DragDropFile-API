@@ -1,12 +1,14 @@
 package file
 
 import (
+	"DragDrop-Files/internal/domain"
 	"DragDrop-Files/internal/domain/entity"
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/minio/minio-go/v7"
 	"net/http"
+
+	"github.com/minio/minio-go/v7"
 )
 
 type Save struct {
@@ -21,29 +23,23 @@ func NewSave(minioClient *minio.Client, cfg *entity.MinioConfig) *Save {
 	}
 }
 
-func (s *Save) File(data []byte, sessionID, filename string) (*minio.UploadInfo, error) {
+func (s *Save) File(data []byte, filename string) (*minio.UploadInfo, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("пустой файл")
 	}
 
 	ctx := context.Background()
-	path := fmt.Sprintf("%s/%s", sessionID, filename)
 
-	_, err := s.minioClient.StatObject(ctx, s.cfg.MinioBucketName, path, minio.StatObjectOptions{})
+	_, err := s.minioClient.StatObject(ctx, s.cfg.MinioBucketName, filename, minio.StatObjectOptions{})
 	if err == nil {
-		return nil, fmt.Errorf("file duplicate")
+		return nil, domain.ErrFileDuplicate
 	}
 	if minio.ToErrorResponse(err).Code != "NoSuchKey" {
 		return nil, fmt.Errorf("ошибка при проверке существования файла: %w", err)
 	}
 
-	contentType := http.DetectContentType(data)
-
-	reader := bytes.NewReader(data)
-	fileSize := int64(len(data))
-
-	uploadInfo, err := s.minioClient.PutObject(ctx, s.cfg.MinioBucketName, path, reader, fileSize, minio.PutObjectOptions{
-		ContentType: contentType,
+	uploadInfo, err := s.minioClient.PutObject(ctx, s.cfg.MinioBucketName, filename, bytes.NewReader(data), int64(len(data)), minio.PutObjectOptions{
+		ContentType: http.DetectContentType(data),
 	})
 	if err != nil {
 		return nil, err

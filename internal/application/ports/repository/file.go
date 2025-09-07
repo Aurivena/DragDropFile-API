@@ -7,8 +7,8 @@ import (
 
 type FileDelete interface {
 	FilesBySessionID(sessionID string) error
-	FilesByFileID(id string) error
-	File(id int) error
+	ID(id int) error
+	FileID(fileID string) error
 }
 
 type FileGet interface {
@@ -21,7 +21,7 @@ type FileGet interface {
 
 type FileSave interface {
 	Execute(file entity.File) (int, error)
-	ExecuteSession(sessionID string, id int) error
+	ExecuteSession(file entity.File) error
 	ExecuteParameters(file entity.File) error
 }
 

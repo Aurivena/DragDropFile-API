@@ -2,15 +2,6 @@ package file
 
 import "github.com/Aurivena/spond/v2/envelope"
 
-func (h *Handler) ErrorPassword() *envelope.AppError {
-	return h.spond.BuildError(
-		envelope.BadRequest,
-		"Проблема с Password файла",
-		"Не удалось определить Password файла",
-		"1. Сделайте повторно запрос.",
-	)
-}
-
 func (h *Handler) ErrorSystem() *envelope.AppError {
 	return h.spond.BuildError(
 		envelope.InternalServerError,

@@ -7,14 +7,16 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
+
+	_ "github.com/sirupsen/logrus"
 )
 
 func ZipFiles(files []entity.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 
-	for i, data := range files {
+	//TODO добавить worker pool
+	for _, data := range files {
 		fileBytes, err := fileops.DecodeFile(data.FileBase64)
 		if err != nil {
 			_ = zipW.Close()
@@ -22,7 +24,6 @@ func ZipFiles(files []entity.File, id string) ([]byte, error) {
 		}
 
 		if len(fileBytes) == 0 {
-			log.Printf("[zipFiles] Пустой файл %d. Пропускаем.", i)
 			continue
 		}
 		header := &zip.FileHeader{
@@ -43,8 +44,7 @@ func ZipFiles(files []entity.File, id string) ([]byte, error) {
 		}
 	}
 
-	err := zipW.Close()
-	if err != nil {
+	if err := zipW.Close(); err != nil {
 		return nil, fmt.Errorf("ошибка при закрытии zip-архива: %w", err)
 	}
 

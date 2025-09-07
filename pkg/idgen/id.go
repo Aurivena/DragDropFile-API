@@ -3,8 +3,9 @@ package idgen
 import (
 	"crypto/rand"
 	"fmt"
-	"log"
 	"math/big"
+
+	"github.com/sirupsen/logrus"
 )
 
 const lenCode = 12
@@ -16,7 +17,7 @@ func GenerateID() (string, error) {
 	for i := range code {
 		num, err := rand.Int(rand.Reader, newInt)
 		if err != nil {
-			log.Printf("не удалось сгенерировать часть ID: %w", err)
+			logrus.Errorf("не удалось сгенерировать часть ID: %s", err)
 			return "", fmt.Errorf("не удалось сгенерировать часть ID: %w", err)
 		}
 		code[i] = letters[num.Int64()]

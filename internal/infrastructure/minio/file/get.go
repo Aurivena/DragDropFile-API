@@ -4,9 +4,9 @@ import (
 	"DragDrop-Files/internal/domain/entity"
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/sirupsen/logrus"
 )
 
 type Get struct {
@@ -21,23 +21,27 @@ func NewGet(minioClient *minio.Client, cfg *entity.MinioConfig) *Get {
 	}
 }
 
-func (s *Get) ByFilename(path string) (*entity.GetFileOutput, error) {
+func (s *Get) ByFilename(filename string) (*entity.GetFileOutput, error) {
 	var out entity.GetFileOutput
 	optsGet := minio.GetObjectOptions{}
-	objectReader, err := s.minioClient.GetObject(context.Background(), s.cfg.MinioBucketName, path, optsGet)
+	objectReader, err := s.minioClient.GetObject(context.Background(), s.cfg.MinioBucketName, filename, optsGet)
 	if err != nil {
 		errResponse := minio.ToErrorResponse(err)
 		if errResponse.Code == "NoSuchKey" {
-			log.Printf("Объект '%s' не найден в MinIO (Bucket: '%s').", path, s.cfg.MinioBucketName)
-			return nil, fmt.Errorf("файл с ID '%s' не найден в хранилище: %w", path, err)
+			logrus.Errorf("Объект '%s' не найден в MinIO (Bucket: '%s').", filename, s.cfg.MinioBucketName)
+			return nil, fmt.Errorf("файл с ID '%s' не найден в хранилище: %w", filename, err)
 		}
 
-		log.Printf("Ошибка получения потока объекта из MinIO: Bucket='%s', Object='%s', Err: %v", s.cfg.MinioBucketName, path, err)
+		logrus.Errorf("Ошибка получения потока объекта из MinIO: Bucket='%s', Object='%s', Err: %v", s.cfg.MinioBucketName, filename, err)
 		return nil, fmt.Errorf("ошибка получения содержимого файла: %w", err)
 	}
 
-	log.Printf("Поток для объекта '%s' из бакета '%s' успешно получен.", path, s.cfg.MinioBucketName)
+	logrus.Infof("Поток для объекта '%s' из бакета '%s' успешно получен.", filename, s.cfg.MinioBucketName)
+	d, _ := objectReader.Stat()
+	logrus.Infof("filename %d", d.Size)
+	logrus.Infof("filename %s", d.Key)
+	logrus.Infof("filename %v", d.Internal)
 	out.File = objectReader
-	out.Name = path
+	out.Name = filename
 	return &out, nil
 }

@@ -1,13 +1,5 @@
 package file
 
-func (r *File) FilesByFileID(id string) error {
-	_, err := r.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *File) FilesBySessionID(sessionID string) error {
 	_, err := r.db.Exec(`DELETE FROM "Session" s
        USING "File" f
@@ -18,8 +10,17 @@ func (r *File) FilesBySessionID(sessionID string) error {
 	}
 	return nil
 }
-func (r *File) File(id int) error {
+func (r *File) ID(id int) error {
 	_, err := r.db.Exec(`DELETE FROM "File" WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *File) FileID(fileID string) error {
+	_, err := r.db.Exec(`DELETE FROM "File" WHERE file_id = $1`, fileID)
 	if err != nil {
 		return err
 	}

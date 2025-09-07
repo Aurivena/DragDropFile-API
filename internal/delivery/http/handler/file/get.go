@@ -3,10 +3,10 @@ package file
 import (
 	"DragDrop-Files/internal/middleware"
 	"fmt"
-	"log"
 
 	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // @Summary      Получить данные файла
@@ -55,7 +55,7 @@ func (h *Handler) Get(c *gin.Context) {
 
 	objInfo, err := out.File.Stat()
 	if err != nil {
-		log.Printf("Ошибка Stat() для объекта %s: %v", id.(string), err)
+		logrus.Errorf("Ошибка Stat() для объекта %s: %v", id.(string), err)
 		h.spond.SendResponseError(c.Writer, h.spond.BuildError(
 			envelope.NotFound,
 			"Ошибка при обработке файла",

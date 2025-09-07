@@ -9,17 +9,17 @@ type Pool struct {
 	wg sync.WaitGroup
 }
 
-func (p *Pool) Work(jobs <-chan entity.File, processedFile []entity.File, fn func(file *entity.File, processedFiles []entity.File)) {
-	for job := range jobs {
-		defer p.wg.Done()
-		fn(&job, processedFile)
+func (p *Pool) Run(n int, jobs <-chan entity.File, fn func(file *entity.File)) {
+	p.wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer p.wg.Done()
+			for j := range jobs {
+				job := j
+				fn(&job)
+			}
+		}()
 	}
 }
 
-func (p *Pool) Add(count int) {
-	p.wg.Add(count)
-}
-
-func (p *Pool) Wait() {
-	p.wg.Wait()
-}
+func (p *Pool) Wait() { p.wg.Wait() }

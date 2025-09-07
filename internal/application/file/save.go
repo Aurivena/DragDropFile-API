@@ -6,19 +6,9 @@ import (
 	"DragDrop-Files/pkg/fileops"
 	"DragDrop-Files/pkg/idgen"
 	"mime/multipart"
-	"runtime"
-	"sync"
 
 	"github.com/Aurivena/spond/v2/envelope"
 	"github.com/sirupsen/logrus"
-)
-
-const (
-	prefixZipFile = "dg-"
-)
-
-var (
-	workerPool = runtime.GOMAXPROCS(0)
 )
 
 func (a *File) Execute(sessionID string, files []multipart.File, headers []*multipart.FileHeader) (*entity.FileSaveOutput, *envelope.AppError) {
@@ -29,76 +19,68 @@ func (a *File) Execute(sessionID string, files []multipart.File, headers []*mult
 		return nil, a.InternalServerError()
 	}
 
-	id, err = domain.SetFileID(id)
-	if err != nil {
-		logrus.Error("failed to set g ID")
-		return nil, a.InternalServerError()
+	results := a.workerPool(newFiles, id, sessionID)
+
+	var processedFiles []entity.File
+	for f := range results {
+		processedFiles = append(processedFiles, f)
 	}
-
-	var (
-		processedFiles []entity.File
-	)
-
-	prefix, err := idgen.GenerateID()
-	if err != nil {
-		logrus.Errorf("failed to generate prefix: %v", err)
-		return nil, a.InternalServerError()
-	}
-
-	jobs := make(chan entity.File)
-
-	pool := domain.Pool{}
-
-	for w := 0; w < workerPool; w++ {
-		go pool.Work(jobs, processedFiles, a.processes)
-	}
-
-	pool.Add(len(newFiles))
-	for _, file := range newFiles {
-		file.Prefix = prefix
-		file.FileID = id
-		file.SessionID = sessionID
-
-		jobs <- file
-	}
-	close(jobs)
-	pool.Wait()
 
 	processedFiles = append(processedFiles, existingFiles...)
 
-	meta, err := a.downloadZipFile(id, sessionID, processedFiles)
+	out, err := a.downloadZipFile(id, sessionID, processedFiles)
 	if err != nil {
-		logrus.Errorf("failed to create zip: %v", err)
 		return nil, a.InternalServerError()
 	}
 
-	return &entity.FileSaveOutput{
-		ID:    id,
-		Size:  meta.Size,
-		Count: len(processedFiles),
-	}, nil
+	return out, nil
 }
 
-func (a *File) processes(file *entity.File, processedFiles []entity.File) {
-	var mu sync.Mutex
+func (a *File) workerPool(newFiles []entity.File, fileID, sessionID string) chan entity.File {
+	prefix, err := idgen.GenerateID()
+	if err != nil {
+		logrus.Errorf("failed to generate prefix: %v", err)
+		return nil
+	}
 
+	jobs := make(chan entity.File)
+	results := make(chan entity.File, len(newFiles))
+
+	pool := domain.Pool{}
+	pool.Run(domain.WorkerPool, jobs, func(f *entity.File) {
+		if ok := a.processes(f); ok {
+			results <- *f
+		}
+	})
+
+	go func() {
+		for _, f := range newFiles {
+			f.Prefix = prefix
+			f.FileID = fileID
+			f.SessionID = sessionID
+			jobs <- f
+		}
+		close(jobs)
+	}()
+	go func() {
+		pool.Wait()
+		close(results)
+	}()
+
+	return results
+}
+
+func (a *File) processes(file *entity.File) bool {
 	data, err := fileops.DecodeFile(file.FileBase64)
 	if err != nil {
-		return
+		return false
 	}
 
-	fileValid := entity.File{
-		FileID:    file.FileID,
-		Name:      file.Name,
-		SessionID: file.SessionID,
-		MimeType:  domain.GetMimeType(file.FileBase64),
+	file.MimeType = domain.GetMimeType(file.FileBase64)
+
+	if !a.validDownloadFile(data, file) {
+		return false
 	}
 
-	if !a.validDownloadFile(data, fileValid, file.Prefix) {
-		return
-	}
-
-	mu.Lock()
-	processedFiles = append(processedFiles, *file)
-	mu.Unlock()
+	return true
 }
