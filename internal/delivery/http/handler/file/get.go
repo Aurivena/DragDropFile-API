@@ -14,7 +14,7 @@ import (
 // @Description  Возвращает служебные данные/метаданные для файла по его идентификатору.
 // @Produce      json
 // @Param        id   path   string  true  "Идентификатор файла"
-// @Success      200  {object} entity.DataOutput  "Метаданные успешно получены"
+// @Success      200  {object} entity.FileData  "Метаданные успешно получены"
 // @Failure      404  {object} map[string]any     "Файл не найден (Spond error)"
 // @Failure      500  {object} map[string]any     "Внутренняя ошибка сервера (Spond error)"
 // @Router       /file/{id}/data [get]

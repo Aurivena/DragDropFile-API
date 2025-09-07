@@ -15,7 +15,6 @@ func ZipFiles(files []entity.File, id string) ([]byte, error) {
 	var buff bytes.Buffer
 	zipW := zip.NewWriter(&buff)
 
-	//TODO добавить worker pool
 	for _, data := range files {
 		fileBytes, err := fileops.DecodeFile(data.FileBase64)
 		if err != nil {

@@ -15,7 +15,7 @@ import (
 // @Accept       multipart/form-data
 // @Produce      json
 // @Param        X-Session-ID  header   string  true  "Идентификатор сессии пользователя"
-// @Param        files         formData file    true  "Файлы для загрузки" collectionFormat(multi)
+// @Param        files         formData []file   true  "Файлы для загрузки"  collectionFormat(multi)
 // @Success      200           {object} entity.FileSaveOutput  "Файл(ы) успешно сохранён(ы)"
 // @Failure      400           {object} map[string]any         "Некорректные данные (Spond error)"
 // @Failure      500           {object} map[string]any         "Внутренняя ошибка сервера (Spond error)"
